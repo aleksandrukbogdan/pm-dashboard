@@ -1,0 +1,110 @@
+:root {
+  /* Material Design 3 Color Tokens */
+  --md-sys-color-primary: #5B5FE3;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #E3DFFF;
+  --md-sys-color-on-primary-container: #17005C;
+  
+  --md-sys-color-secondary: #5E5C71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E4DFF9;
+  --md-sys-color-on-secondary-container: #1B192C;
+  
+  --md-sys-color-tertiary: #7A5368;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FFD8E9;
+  --md-sys-color-on-tertiary-container: #2E1124;
+  
+  --md-sys-color-surface: #FFFBFF;
+  --md-sys-color-surface-dim: #DED8E1;
+  --md-sys-color-surface-bright: #FFFBFF;
+  --md-sys-color-surface-container-lowest: #FFFFFF;
+  --md-sys-color-surface-container-low: #F9F3F7;
+  --md-sys-color-surface-container: #F3EDF1;
+  --md-sys-color-surface-container-high: #EDE7EC;
+  --md-sys-color-surface-container-highest: #E7E1E6;
+  
+  --md-sys-color-outline: #79757F;
+  --md-sys-color-outline-variant: #CAC4CF;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f8f7ff 0%, #fff5f8 50%, #f5f9ff 100%);
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-outline);
+}
+
+/* Smooth animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+
+
+
