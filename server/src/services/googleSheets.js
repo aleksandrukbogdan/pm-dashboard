@@ -26,7 +26,7 @@ export async function getSpreadsheetInfo(spreadsheetId) {
     const response = await sheets.spreadsheets.get({
       spreadsheetId,
     });
-    
+
     return {
       title: response.data.properties.title,
       sheets: response.data.sheets.map(sheet => ({
@@ -51,7 +51,7 @@ export async function getSheetData(spreadsheetId, range) {
       spreadsheetId,
       range,
     });
-    
+
     return response.data.values || [];
   } catch (error) {
     console.error('Error fetching sheet data:', error.message);
@@ -62,17 +62,17 @@ export async function getSheetData(spreadsheetId, range) {
 /**
  * Get all data from a sheet and convert to objects
  */
-export async function getSheetDataAsObjects(spreadsheetId, sheetName) {
+export async function getSheetDataAsObjects(spreadsheetId, sheetName, headerRowIndex = 0) {
   try {
     const data = await getSheetData(spreadsheetId, sheetName);
-    
-    if (data.length < 2) {
+
+    if (data.length <= headerRowIndex + 1) {
       return [];
     }
-    
-    const headers = data[0].map(h => h.toLowerCase().replace(/\s+/g, '_'));
-    const rows = data.slice(1);
-    
+
+    const headers = data[headerRowIndex].map(h => h.toLowerCase().replace(/\s+/g, '_'));
+    const rows = data.slice(headerRowIndex + 1);
+
     return rows.map(row => {
       const obj = {};
       headers.forEach((header, index) => {
@@ -92,11 +92,11 @@ export async function getSheetDataAsObjects(spreadsheetId, sheetName) {
 export async function getSheetStats(spreadsheetId, sheetName) {
   try {
     const data = await getSheetDataAsObjects(spreadsheetId, sheetName);
-    
+
     if (data.length === 0) {
       return { total: 0, columns: [] };
     }
-    
+
     const columns = Object.keys(data[0]);
     const stats = {
       total: data.length,
@@ -106,7 +106,7 @@ export async function getSheetStats(spreadsheetId, sheetName) {
         emptyCount: data.filter(row => !row[col]).length,
       })),
     };
-    
+
     return stats;
   } catch (error) {
     console.error('Error calculating stats:', error.message);

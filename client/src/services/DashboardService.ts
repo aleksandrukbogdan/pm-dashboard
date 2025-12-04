@@ -18,6 +18,15 @@ export interface DashboardData {
         };
         byStatus: Record<string, number>;
         teamRoles: Record<string, number>;
+        byType: {
+            internal: number;
+            commercial: number;
+            free: number;
+        };
+        byCompany: {
+            ite29: number;
+            nir: number;
+        };
     };
     projects: any[];
 }

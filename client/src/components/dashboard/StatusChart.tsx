@@ -40,10 +40,9 @@ export default function StatusChart({ byStatus }: StatusChartProps) {
                             fontSize: 10,
                         }
                     }]}
-                    series={[{ data, color: '#03a9f4' }]}
+                    series={[{ data, color: '#03a9f4', label: 'Количество' }]}
                     height={280}
                     slotProps={{ legend: { hidden: true } }}
-                    barLabel="value"
                 />
             </Box>
         </Paper>
