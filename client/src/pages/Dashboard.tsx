@@ -20,6 +20,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,6 +53,12 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       projects = projects.filter(p => p.direction === selectedDirection);
     }
 
+    // Filter by status if selected (case-insensitive)
+    if (selectedStatus) {
+      const lowerSelectedStatus = selectedStatus.toLowerCase().trim();
+      projects = projects.filter(p => (p.status?.toLowerCase().trim() || '') === lowerSelectedStatus);
+    }
+
     // Filter by organization
     if (organizationFilter !== 'all') {
       projects = projects.filter(p => {
@@ -79,7 +86,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
     }
 
     return projects;
-  }, [data, selectedDirection, organizationFilter, showCompleted]);
+  }, [data, selectedDirection, selectedStatus, organizationFilter, showCompleted]);
 
   // Recalculate stats based on filtered projects
   const filteredStats = useMemo(() => {
@@ -214,15 +221,25 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {/* Direction filter indicator */}
-      {selectedDirection && (
-        <Box sx={{ mb: 3 }}>
-          <Chip
-            label={`Фильтр направления: ${selectedDirection}`}
-            onDelete={() => setSelectedDirection(null)}
-            color="primary"
-            size="small"
-          />
+      {/* Filter indicators */}
+      {(selectedDirection || selectedStatus) && (
+        <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          {selectedDirection && (
+            <Chip
+              label={`Направление: ${selectedDirection}`}
+              onDelete={() => setSelectedDirection(null)}
+              color="primary"
+              size="small"
+            />
+          )}
+          {selectedStatus && (
+            <Chip
+              label={`Статус: ${selectedStatus}`}
+              onDelete={() => setSelectedStatus(null)}
+              color="secondary"
+              size="small"
+            />
+          )}
         </Box>
       )}
 
@@ -251,7 +268,13 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
         {/* Bottom Row: Status & Team */}
         <Grid item xs={12} md={6}>
-          <StatusChart byStatus={filteredStats.byStatus} showCompleted={showCompleted} />
+          <StatusChart
+            byStatus={filteredStats.byStatus}
+            showCompleted={showCompleted}
+            projects={filteredProjects}
+            selectedStatus={selectedStatus}
+            onStatusClick={setSelectedStatus}
+          />
         </Grid>
         <Grid item xs={12} md={6}>
           <TeamGrid teamRoles={filteredStats.teamRoles} teamMembers={filteredStats.teamMembers} />
