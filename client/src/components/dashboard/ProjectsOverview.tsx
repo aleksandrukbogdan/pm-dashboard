@@ -10,6 +10,15 @@ const DIRECTION_COLORS = [
     '#26A69A', // Промышленный дизайн - Teal
 ];
 
+// Dimmed versions of colors
+const DIRECTION_COLORS_DIMMED = [
+    '#B3BCE0', // Web - Dimmed
+    '#C7B8E0', // Mobile - Dimmed
+    '#DDB8E0', // Design - Dimmed
+    '#F5B8D0', // Разработка ПО - Dimmed
+    '#B8DDD8', // Промышленный дизайн - Dimmed
+];
+
 interface ProjectsOverviewProps {
     totalProjects: number;
     byDirection: Record<string, number>;
@@ -29,17 +38,25 @@ export default function ProjectsOverview({
 }: ProjectsOverviewProps) {
     const directions = Object.keys(byDirection);
 
-    const data = Object.entries(byDirection).map(([label, value], id) => ({
-        id,
-        value,
-        label,
-        color: DIRECTION_COLORS[id % DIRECTION_COLORS.length],
-    }));
+    // Create data with proper colors based on selection and value
+    const data = Object.entries(byDirection).map(([label, value], id) => {
+        const isSelected = !selectedDirection || selectedDirection === label;
+        const hasProjects = value > 0;
+        // Dim if not selected OR if has 0 projects
+        const shouldDim = !isSelected || !hasProjects;
+        return {
+            id,
+            value,
+            label,
+            color: shouldDim
+                ? DIRECTION_COLORS_DIMMED[id % DIRECTION_COLORS_DIMMED.length]
+                : DIRECTION_COLORS[id % DIRECTION_COLORS.length],
+        };
+    });
 
-    const handleChartClick = (_event: any, itemData: any) => {
-        if (itemData && itemData.dataIndex !== undefined) {
-            const clickedDirection = directions[itemData.dataIndex];
-            // Toggle: if already selected, deselect; otherwise select
+    const handleChartClick = (_event: any, itemIdentifier: any) => {
+        if (itemIdentifier && itemIdentifier.dataIndex !== undefined) {
+            const clickedDirection = directions[itemIdentifier.dataIndex];
             onDirectionClick?.(selectedDirection === clickedDirection ? null : clickedDirection);
         }
     };
@@ -49,7 +66,6 @@ export default function ProjectsOverview({
     };
 
     const handleCenterClick = () => {
-        // Click on center clears filter
         onDirectionClick?.(null);
     };
 
@@ -60,7 +76,7 @@ export default function ProjectsOverview({
             </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ position: 'relative', width: 150, height: 150 }}>
+                <Box sx={{ position: 'relative', width: 150, height: 150, cursor: 'pointer' }}>
                     <PieChart
                         series={[
                             {
@@ -71,13 +87,18 @@ export default function ProjectsOverview({
                                 cornerRadius: 4,
                                 cx: 70,
                                 cy: 70,
-                                highlightScope: { faded: 'global', highlighted: 'item' },
                             },
                         ]}
                         width={150}
                         height={150}
                         slotProps={{ legend: { hidden: true } }}
                         onItemClick={handleChartClick}
+                        sx={{
+                            cursor: 'pointer',
+                            '& .MuiPieArc-root': {
+                                cursor: 'pointer',
+                            }
+                        }}
                     />
                     <Box
                         onClick={handleCenterClick}
@@ -88,6 +109,7 @@ export default function ProjectsOverview({
                             transform: 'translate(-50%, -50%)',
                             textAlign: 'center',
                             cursor: 'pointer',
+                            pointerEvents: 'auto',
                             '&:hover': { opacity: 0.8 }
                         }}
                     >
@@ -107,33 +129,49 @@ export default function ProjectsOverview({
                         />
                         <Typography variant="caption" color="text.secondary">Кол-во проектов</Typography>
                     </ListItem>
-                    {Object.entries(byDirection).map(([direction, count], index) => (
-                        <ListItem
-                            key={direction}
-                            disablePadding
-                            sx={{
-                                py: 0.5,
-                                cursor: 'pointer',
-                                borderRadius: 1,
-                                px: 0.5,
-                                bgcolor: selectedDirection === direction ? 'action.selected' : 'transparent',
-                                '&:hover': { bgcolor: 'action.hover' }
-                            }}
-                            onClick={() => handleLabelClick(direction)}
-                        >
-                            <Box
+                    {Object.entries(byDirection).map(([direction, count], index) => {
+                        const isSelected = !selectedDirection || selectedDirection === direction;
+                        const hasProjects = count > 0;
+                        // Dim if not selected OR if has 0 projects
+                        const shouldDim = !isSelected || !hasProjects;
+                        const colorIndex = index % DIRECTION_COLORS.length;
+
+                        return (
+                            <ListItem
+                                key={direction}
+                                disablePadding
                                 sx={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: '50%',
-                                    bgcolor: DIRECTION_COLORS[index % DIRECTION_COLORS.length],
-                                    mr: 1
+                                    py: 0.5,
+                                    cursor: 'pointer',
+                                    borderRadius: 1,
+                                    px: 0.5,
+                                    bgcolor: selectedDirection === direction ? 'action.selected' : 'transparent',
+                                    opacity: shouldDim ? 0.4 : 1,
+                                    transition: 'opacity 0.2s, background-color 0.2s',
+                                    '&:hover': {
+                                        bgcolor: 'action.hover',
+                                        opacity: 1
+                                    }
                                 }}
-                            />
-                            <ListItemText primary={direction} primaryTypographyProps={{ variant: 'body2' }} />
-                            <Typography variant="body2" fontWeight="bold">{count}</Typography>
-                        </ListItem>
-                    ))}
+                                onClick={() => handleLabelClick(direction)}
+                            >
+                                <Box
+                                    sx={{
+                                        width: 8,
+                                        height: 8,
+                                        borderRadius: '50%',
+                                        bgcolor: shouldDim
+                                            ? DIRECTION_COLORS_DIMMED[colorIndex]
+                                            : DIRECTION_COLORS[colorIndex],
+                                        mr: 1,
+                                        transition: 'background-color 0.2s'
+                                    }}
+                                />
+                                <ListItemText primary={direction} primaryTypographyProps={{ variant: 'body2' }} />
+                                <Typography variant="body2" fontWeight="bold">{count}</Typography>
+                            </ListItem>
+                        );
+                    })}
                 </List>
             </Box>
 

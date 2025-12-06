@@ -3,11 +3,12 @@ import { BarChart } from '@mui/x-charts/BarChart';
 
 interface StatusChartProps {
     byStatus: Record<string, number>;
+    showCompleted?: boolean;
 }
 
-export default function StatusChart({ byStatus }: StatusChartProps) {
+export default function StatusChart({ byStatus, showCompleted = true }: StatusChartProps) {
     // Sort or order statuses logically if needed
-    const orderedStatuses = [
+    const allStatuses = [
         'Не начат',
         'пауза',
         'Пилот',
@@ -17,6 +18,12 @@ export default function StatusChart({ byStatus }: StatusChartProps) {
         'Готов',
         'На поддержке'
     ];
+
+    // Filter out completed statuses if showCompleted is false
+    const completedStatuses = ['Готов', 'На поддержке'];
+    const orderedStatuses = showCompleted
+        ? allStatuses
+        : allStatuses.filter(s => !completedStatuses.includes(s));
 
     const xLabels = orderedStatuses;
     const data = orderedStatuses.map(status => byStatus[status] || 0);

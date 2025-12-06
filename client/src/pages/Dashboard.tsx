@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Box, Grid, Typography, CircularProgress, Alert, Chip } from '@mui/material';
+import { Box, Grid, CircularProgress, Alert, Chip } from '@mui/material';
 import { DashboardService, DashboardData } from '../services/DashboardService';
 import ProjectsOverview from '../components/dashboard/ProjectsOverview';
 import Deadlines from '../components/dashboard/Deadlines';
@@ -7,12 +7,15 @@ import Finances from '../components/dashboard/Finances';
 import StatusChart from '../components/dashboard/StatusChart';
 import TeamGrid from '../components/dashboard/TeamGrid';
 import ProjectRegistry from '../components/dashboard/ProjectRegistry';
+import { OrganizationFilter } from '../App';
 
 interface DashboardProps {
   spreadsheetId: string;
+  organizationFilter: OrganizationFilter;
+  showCompleted: boolean;
 }
 
-export default function Dashboard({ spreadsheetId }: DashboardProps) {
+export default function Dashboard({ spreadsheetId, organizationFilter, showCompleted }: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +41,45 @@ export default function Dashboard({ spreadsheetId }: DashboardProps) {
     }
   }, [spreadsheetId]);
 
-  // Filter projects based on selected direction
+  // Filter projects based on selected direction, organization filter, and completed status
   const filteredProjects = useMemo(() => {
     if (!data) return [];
-    if (!selectedDirection) return data.projects;
-    return data.projects.filter(p => p.direction === selectedDirection);
-  }, [data, selectedDirection]);
+
+    let projects = data.projects;
+
+    // Filter by direction if selected
+    if (selectedDirection) {
+      projects = projects.filter(p => p.direction === selectedDirection);
+    }
+
+    // Filter by organization
+    if (organizationFilter !== 'all') {
+      projects = projects.filter(p => {
+        if (organizationFilter === 'nir') {
+          return p.team?.some((m: any) => {
+            const emp = m.employment?.toLowerCase() || '';
+            return emp.includes('нир');
+          });
+        } else if (organizationFilter === 'ite29') {
+          return p.team?.some((m: any) => {
+            const emp = m.employment?.toLowerCase() || '';
+            return emp.includes('итэ') || emp.includes('it-') || emp.includes('элемент');
+          });
+        }
+        return true;
+      });
+    }
+
+    // Filter completed projects
+    if (!showCompleted) {
+      projects = projects.filter(p => {
+        const status = p.status?.toLowerCase() || '';
+        return !status.includes('завершен') && !status.includes('на поддержке') && !status.includes('готов');
+      });
+    }
+
+    return projects;
+  }, [data, selectedDirection, organizationFilter, showCompleted]);
 
   // Recalculate stats based on filtered projects
   const filteredStats = useMemo(() => {
@@ -58,8 +94,9 @@ export default function Dashboard({ spreadsheetId }: DashboardProps) {
       byStatus[status] = (byStatus[status] || 0) + 1;
     });
 
-    // Calculate teamRoles from filtered projects
+    // Calculate teamRoles and collect team members from filtered projects
     const teamRoles: Record<string, number> = {};
+    const teamMembers: { name: string; role: string }[] = [];
     const seenMembers = new Set<string>();
     projects.forEach(p => {
       p.team?.forEach((member: any) => {
@@ -67,6 +104,7 @@ export default function Dashboard({ spreadsheetId }: DashboardProps) {
           const key = `${member.name}|${member.role}`;
           if (!seenMembers.has(key)) {
             teamRoles[member.role] = (teamRoles[member.role] || 0) + 1;
+            teamMembers.push({ name: member.name, role: member.role });
             seenMembers.add(key);
           }
         }
@@ -124,9 +162,27 @@ export default function Dashboard({ spreadsheetId }: DashboardProps) {
       if (hasNir) byCompany.nir++;
     });
 
+    // Calculate byDirection from filtered projects, but keep all original directions
+    // This ensures directions with 0 projects after filtering are shown dimmed, not removed
+    const byDirection: Record<string, number> = {};
+
+    // First, get all original directions from unfiltered data
+    const originalDirections = Object.keys(data?.charts?.byDirection || {});
+    originalDirections.forEach(dir => {
+      byDirection[dir] = 0; // Initialize all with 0
+    });
+
+    // Then count from filtered projects
+    projects.forEach(p => {
+      const dir = p.direction || 'Другое';
+      byDirection[dir] = (byDirection[dir] || 0) + 1;
+    });
+
     return {
       byStatus,
+      byDirection,
       teamRoles,
+      teamMembers,
       deadlines,
       totalBudget,
       byType,
@@ -158,33 +214,26 @@ export default function Dashboard({ spreadsheetId }: DashboardProps) {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="h4" component="h1" fontWeight="bold" color="text.primary">
-            НИР↔ЦЕНТР
-          </Typography>
-          {selectedDirection && (
-            <Chip
-              label={`Фильтр: ${selectedDirection}`}
-              onDelete={() => setSelectedDirection(null)}
-              color="primary"
-              size="small"
-            />
-          )}
+      {/* Direction filter indicator */}
+      {selectedDirection && (
+        <Box sx={{ mb: 3 }}>
+          <Chip
+            label={`Фильтр направления: ${selectedDirection}`}
+            onDelete={() => setSelectedDirection(null)}
+            color="primary"
+            size="small"
+          />
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Typography variant="body2" color="text.secondary">29.03.2025</Typography>
-        </Box>
-      </Box>
+      )}
 
       <Grid container spacing={3}>
         {/* Top Row: Projects & Deadlines */}
         <Grid item xs={12} md={6}>
           <ProjectsOverview
-            totalProjects={selectedDirection ? filteredStats.totalProjects : data.summary.totalProjects}
-            byDirection={data.charts.byDirection}
-            byType={selectedDirection ? filteredStats.byType : data.charts.byType}
-            byCompany={selectedDirection ? filteredStats.byCompany : data.charts.byCompany}
+            totalProjects={filteredStats.totalProjects}
+            byDirection={filteredStats.byDirection}
+            byType={filteredStats.byType}
+            byCompany={filteredStats.byCompany}
             selectedDirection={selectedDirection}
             onDirectionClick={setSelectedDirection}
           />
@@ -202,10 +251,10 @@ export default function Dashboard({ spreadsheetId }: DashboardProps) {
 
         {/* Bottom Row: Status & Team */}
         <Grid item xs={12} md={6}>
-          <StatusChart byStatus={filteredStats.byStatus} />
+          <StatusChart byStatus={filteredStats.byStatus} showCompleted={showCompleted} />
         </Grid>
         <Grid item xs={12} md={6}>
-          <TeamGrid teamRoles={filteredStats.teamRoles} />
+          <TeamGrid teamRoles={filteredStats.teamRoles} teamMembers={filteredStats.teamMembers} />
         </Grid>
 
         {/* Project Registry */}

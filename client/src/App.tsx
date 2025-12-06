@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
 
@@ -9,10 +10,26 @@ import Settings from './pages/Settings';
 
 const SPREADSHEET_ID = '1wqIvBBVGWFAlqYD42yYLm859h6uCWGBnCkUq5rv0ZeQ';
 
+export type OrganizationFilter = 'all' | 'nir' | 'ite29';
+
 function App() {
+  const [aiOpen, setAiOpen] = useState(false);
+  const [organizationFilter, setOrganizationFilter] = useState<OrganizationFilter>('all');
+  const [showCompleted, setShowCompleted] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
-      <Header onAIToggle={() => { }} aiOpen={false} />
+      <Header
+        onAIToggle={() => setAiOpen(!aiOpen)}
+        aiOpen={aiOpen}
+        organizationFilter={organizationFilter}
+        onOrganizationFilterChange={setOrganizationFilter}
+        showCompleted={showCompleted}
+        onShowCompletedChange={setShowCompleted}
+        selectedDate={selectedDate}
+        onSelectedDateChange={setSelectedDate}
+      />
 
       <Box
         component="main"
@@ -26,7 +43,13 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Dashboard spreadsheetId={SPREADSHEET_ID} />}
+            element={
+              <Dashboard
+                spreadsheetId={SPREADSHEET_ID}
+                organizationFilter={organizationFilter}
+                showCompleted={showCompleted}
+              />
+            }
           />
           <Route
             path="/data"
@@ -40,4 +63,3 @@ function App() {
 }
 
 export default App;
-
