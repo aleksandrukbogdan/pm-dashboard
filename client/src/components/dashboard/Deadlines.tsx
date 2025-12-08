@@ -8,14 +8,32 @@ interface DeadlinesProps {
         overdueLarge: number;
         completed: number;
     };
+    selectedDeadlineStatus?: string | null;
+    onDeadlineClick?: (status: string | null) => void;
 }
 
-export default function Deadlines({ stats }: DeadlinesProps) {
+export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineClick }: DeadlinesProps) {
     const data = [
-        { id: 0, value: stats.onTrack, label: 'В сроках', color: '#4caf50' },
-        { id: 1, value: stats.overdueSmall, label: 'Просрочка менее 2 недель', color: '#ff9800' },
-        { id: 2, value: stats.overdueLarge, label: 'Просрочка более 2 недель', color: '#f44336' },
+        { id: 0, value: stats.onTrack, label: 'В сроках', color: '#4caf50', statusKey: 'On Track' },
+        { id: 1, value: stats.overdueSmall, label: 'Просрочка менее 2 недель', color: '#ff9800', statusKey: 'Overdue < 2 weeks' },
+        { id: 2, value: stats.overdueLarge, label: 'Просрочка более 2 недель', color: '#f44336', statusKey: 'Overdue > 2 weeks' },
     ];
+
+    const handleItemClick = (statusKey: string) => {
+        if (onDeadlineClick) {
+            // Toggle: if same status clicked, deselect
+            onDeadlineClick(selectedDeadlineStatus === statusKey ? null : statusKey);
+        }
+    };
+
+    const handlePieClick = (_event: any, itemIdentifier: any) => {
+        if (itemIdentifier && typeof itemIdentifier.dataIndex === 'number') {
+            const clickedItem = data[itemIdentifier.dataIndex];
+            if (clickedItem) {
+                handleItemClick(clickedItem.statusKey);
+            }
+        }
+    };
 
     return (
         <Paper sx={{ p: 2, height: '100%' }}>
@@ -24,11 +42,16 @@ export default function Deadlines({ stats }: DeadlinesProps) {
             </Typography>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ width: 150, height: 150 }}>
+                <Box sx={{ width: 150, height: 150, cursor: onDeadlineClick ? 'pointer' : 'default' }}>
                     <PieChart
                         series={[
                             {
-                                data,
+                                data: data.map(item => ({
+                                    ...item,
+                                    color: (!selectedDeadlineStatus || selectedDeadlineStatus === item.statusKey)
+                                        ? item.color
+                                        : `${item.color}40`, // Dim non-selected
+                                })),
                                 innerRadius: 50,
                                 outerRadius: 70,
                                 paddingAngle: 2,
@@ -40,6 +63,7 @@ export default function Deadlines({ stats }: DeadlinesProps) {
                         width={150}
                         height={150}
                         slotProps={{ legend: { hidden: true } }}
+                        onItemClick={handlePieClick}
                     />
                 </Box>
 
@@ -50,13 +74,36 @@ export default function Deadlines({ stats }: DeadlinesProps) {
                         />
                         <Typography variant="caption" color="text.secondary">Кол-во проектов</Typography>
                     </ListItem>
-                    {data.map((item) => (
-                        <ListItem key={item.label} disablePadding sx={{ py: 0.5 }}>
-                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: item.color, mr: 1 }} />
-                            <ListItemText primary={item.label} primaryTypographyProps={{ variant: 'body2' }} />
-                            <Typography variant="body2" fontWeight="bold">{item.value}</Typography>
-                        </ListItem>
-                    ))}
+                    {data.map((item) => {
+                        const isSelected = !selectedDeadlineStatus || selectedDeadlineStatus === item.statusKey;
+                        const isActive = selectedDeadlineStatus === item.statusKey;
+
+                        return (
+                            <ListItem
+                                key={item.label}
+                                disablePadding
+                                sx={{
+                                    py: 0.5,
+                                    cursor: onDeadlineClick ? 'pointer' : 'default',
+                                    opacity: isSelected ? 1 : 0.4,
+                                    bgcolor: isActive ? 'action.selected' : 'transparent',
+                                    borderRadius: 1,
+                                    px: 0.5,
+                                    mx: -0.5,
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': onDeadlineClick ? {
+                                        bgcolor: 'action.hover',
+                                        opacity: 1,
+                                    } : {},
+                                }}
+                                onClick={() => handleItemClick(item.statusKey)}
+                            >
+                                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: item.color, mr: 1 }} />
+                                <ListItemText primary={item.label} primaryTypographyProps={{ variant: 'body2' }} />
+                                <Typography variant="body2" fontWeight="bold">{item.value}</Typography>
+                            </ListItem>
+                        );
+                    })}
                 </List>
             </Box>
         </Paper>

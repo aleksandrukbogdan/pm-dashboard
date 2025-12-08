@@ -6,12 +6,12 @@ const STATUS_COLORS: Record<string, string> = {
     'Не начат': '#d4d4d4',           // Gray
     'пауза': '#e6c258',               // Yellow
     'Пауза': '#e6c258',               // Yellow (case variation)  
-    'Пилот': '#9c27b0',               // Purple
-    'В разработке менее 50%': '#e6c258',  // Yellow
-    'В разработке более 50%': '#e6c258',  // Yellow
-    'Завершающий этап разработки': '#3f51b5', // Blue/Indigo
-    'Готов': '#4caf50',               // Green
-    'На поддержке': '#26a69a'         // Teal
+    'Пилот': '#FF94DB',               // Purple
+    'В разработке менее 50%': '#DCD4FF',  // Yellow
+    'В разработке более 50%': '#9982FF',  // Yellow
+    'Завершающий этап разработки': '#00A8F0', // Blue/Indigo
+    'Готов': '#05CD99',               // Green
+    'На поддержке': '#6FD439'         // Teal
 };
 
 // Short labels for X-axis

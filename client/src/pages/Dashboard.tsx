@@ -21,6 +21,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [error, setError] = useState<string | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +60,14 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       projects = projects.filter(p => (p.status?.toLowerCase().trim() || '') === lowerSelectedStatus);
     }
 
+    // Filter by deadline status if selected
+    if (selectedDeadlineStatus) {
+      projects = projects.filter(p => {
+        const deadlineStatus = calculateDeadlineStatus(p.endDate, p.status);
+        return deadlineStatus === selectedDeadlineStatus;
+      });
+    }
+
     // Filter by organization
     if (organizationFilter !== 'all') {
       projects = projects.filter(p => {
@@ -86,7 +95,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
     }
 
     return projects;
-  }, [data, selectedDirection, selectedStatus, organizationFilter, showCompleted]);
+  }, [data, selectedDirection, selectedStatus, selectedDeadlineStatus, organizationFilter, showCompleted]);
 
   // Recalculate stats based on filtered projects
   const filteredStats = useMemo(() => {
@@ -222,7 +231,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   return (
     <Box sx={{ flexGrow: 1 }}>
       {/* Filter indicators */}
-      {(selectedDirection || selectedStatus) && (
+      {(selectedDirection || selectedStatus || selectedDeadlineStatus) && (
         <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           {selectedDirection && (
             <Chip
@@ -237,6 +246,14 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
               label={`Статус: ${selectedStatus}`}
               onDelete={() => setSelectedStatus(null)}
               color="secondary"
+              size="small"
+            />
+          )}
+          {selectedDeadlineStatus && (
+            <Chip
+              label={`Срок: ${deadlineStatusToLabel(selectedDeadlineStatus)}`}
+              onDelete={() => setSelectedDeadlineStatus(null)}
+              color="warning"
               size="small"
             />
           )}
@@ -258,7 +275,11 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
         <Grid item xs={12} md={6}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Deadlines stats={filteredStats.deadlines} />
+              <Deadlines
+                stats={filteredStats.deadlines}
+                selectedDeadlineStatus={selectedDeadlineStatus}
+                onDeadlineClick={setSelectedDeadlineStatus}
+              />
             </Grid>
             <Grid item xs={12}>
               <Finances totalBudget={filteredStats.totalBudget} />
@@ -314,5 +335,16 @@ function calculateDeadlineStatus(endDateStr: string, status: string): string {
     return 'Overdue < 2 weeks';
   } else {
     return 'Overdue > 2 weeks';
+  }
+}
+
+// Helper function to convert internal deadline status to display label
+function deadlineStatusToLabel(status: string): string {
+  switch (status) {
+    case 'On Track': return 'В сроках';
+    case 'Overdue < 2 weeks': return 'Просрочка менее 2 недель';
+    case 'Overdue > 2 weeks': return 'Просрочка более 2 недель';
+    case 'Completed': return 'Завершен';
+    default: return status;
   }
 }
