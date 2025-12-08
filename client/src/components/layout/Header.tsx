@@ -9,15 +9,12 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { ru } from 'date-fns/locale';
 import {
   AutoAwesome as AIIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { OrganizationFilter } from '../../App';
+import WeekPicker from '../dashboard/WeekPicker';
 
 interface HeaderProps {
   onAIToggle: () => void;
@@ -26,8 +23,9 @@ interface HeaderProps {
   onOrganizationFilterChange: (filter: OrganizationFilter) => void;
   showCompleted: boolean;
   onShowCompletedChange: (show: boolean) => void;
-  selectedDate: Date | null;
-  onSelectedDateChange: (date: Date | null) => void;
+  selectedWeek: string | null;
+  onSelectedWeekChange: (week: string | null) => void;
+  onDataRefresh?: () => void;
 }
 
 export default function Header({
@@ -37,8 +35,9 @@ export default function Header({
   onOrganizationFilterChange,
   showCompleted,
   onShowCompletedChange,
-  selectedDate,
-  onSelectedDateChange,
+  selectedWeek,
+  onSelectedWeekChange,
+  onDataRefresh,
 }: HeaderProps) {
   const handleOrganizationChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -142,37 +141,15 @@ export default function Header({
         </ToggleButtonGroup>
       </Box>
 
-      {/* Right section: Date picker + AI button */}
+      {/* Right section: Week picker + AI button */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        {/* Date picker */}
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ru}>
-          <DatePicker
-            value={selectedDate}
-            onChange={(newValue: Date | null) => onSelectedDateChange(newValue)}
-            format="dd.MM.yyyy"
-            slotProps={{
-              textField: {
-                size: 'small',
-                sx: {
-                  width: 150,
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: alpha('#5B5FE3', 0.04),
-                    borderRadius: 2,
-                    '& fieldset': {
-                      borderColor: alpha('#5B5FE3', 0.2),
-                    },
-                    '&:hover fieldset': {
-                      borderColor: alpha('#5B5FE3', 0.4),
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#5B5FE3',
-                    },
-                  },
-                },
-              },
-            }}
-          />
-        </LocalizationProvider>
+        {/* Week picker */}
+        <WeekPicker
+          selectedWeek={selectedWeek}
+          onWeekChange={onSelectedWeekChange}
+          onDataRefresh={onDataRefresh}
+          compact
+        />
 
         {/* AI Assistant Button */}
         <Tooltip title={aiOpen ? 'Закрыть AI помощника' : 'AI Помощник'}>
@@ -203,3 +180,4 @@ export default function Header({
     </Box>
   );
 }
+

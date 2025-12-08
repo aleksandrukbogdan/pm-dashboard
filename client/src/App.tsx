@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
 
@@ -16,7 +16,12 @@ function App() {
   const [aiOpen, setAiOpen] = useState(false);
   const [organizationFilter, setOrganizationFilter] = useState<OrganizationFilter>('all');
   const [showCompleted, setShowCompleted] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleDataRefresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
@@ -27,8 +32,9 @@ function App() {
         onOrganizationFilterChange={setOrganizationFilter}
         showCompleted={showCompleted}
         onShowCompletedChange={setShowCompleted}
-        selectedDate={selectedDate}
-        onSelectedDateChange={setSelectedDate}
+        selectedWeek={selectedWeek}
+        onSelectedWeekChange={setSelectedWeek}
+        onDataRefresh={handleDataRefresh}
       />
 
       <Box
@@ -48,6 +54,8 @@ function App() {
                 spreadsheetId={SPREADSHEET_ID}
                 organizationFilter={organizationFilter}
                 showCompleted={showCompleted}
+                selectedWeek={selectedWeek}
+                refreshTrigger={refreshTrigger}
               />
             }
           />
@@ -63,3 +71,4 @@ function App() {
 }
 
 export default App;
+

@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import sheetsRoutes from './routes/sheets.js';
 import dashboardRoutes from './routes/dashboard.js';
+import snapshotsRoutes from './routes/snapshots.js';
+import { initScheduler } from './services/scheduler.js';
 
 dotenv.config();
 
@@ -15,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/sheets', sheetsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/snapshots', snapshotsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -22,9 +25,8 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
+
+  // Initialize the weekly snapshot scheduler
+  initScheduler();
 });
-
-
-
-

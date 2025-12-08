@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Box, Grid, CircularProgress, Alert, Chip } from '@mui/material';
 import { DashboardService, DashboardData } from '../services/DashboardService';
 import ProjectsOverview from '../components/dashboard/ProjectsOverview';
@@ -13,9 +13,11 @@ interface DashboardProps {
   spreadsheetId: string;
   organizationFilter: OrganizationFilter;
   showCompleted: boolean;
+  selectedWeek: string | null;
+  refreshTrigger?: number;
 }
 
-export default function Dashboard({ spreadsheetId, organizationFilter, showCompleted }: DashboardProps) {
+export default function Dashboard({ spreadsheetId, organizationFilter, showCompleted, selectedWeek, refreshTrigger }: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,25 +25,40 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const dashboardData = await DashboardService.getDashboardData(spreadsheetId);
-        setData(dashboardData);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-        setError('Failed to load dashboard data. Please make sure the server is running.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
 
+      let dashboardData: DashboardData;
+
+      if (selectedWeek) {
+        // Fetch snapshot data for selected week
+        const snapshot = await DashboardService.getSnapshotData(selectedWeek);
+        dashboardData = {
+          summary: snapshot.summary,
+          charts: snapshot.charts,
+          projects: snapshot.projects
+        };
+      } else {
+        // Fetch live data
+        dashboardData = await DashboardService.getDashboardData(spreadsheetId);
+      }
+
+      setData(dashboardData);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+      setError('Failed to load dashboard data. Please make sure the server is running.');
+    } finally {
+      setLoading(false);
+    }
+  }, [spreadsheetId, selectedWeek]);
+
+  useEffect(() => {
     if (spreadsheetId) {
       fetchData();
     }
-  }, [spreadsheetId]);
+  }, [spreadsheetId, selectedWeek, refreshTrigger, fetchData]);
 
   // Filter projects based on selected direction, organization filter, and completed status
   const filteredProjects = useMemo(() => {
@@ -230,6 +247,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
   return (
     <Box sx={{ flexGrow: 1 }}>
+
       {/* Filter indicators */}
       {(selectedDirection || selectedStatus || selectedDeadlineStatus) && (
         <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
