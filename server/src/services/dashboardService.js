@@ -6,6 +6,8 @@ const SHEET_MAPPINGS = [
   { name: 'Design (графичесикй)', direction: 'Design', headerRowIndex: 0 },
   { name: 'Проекты разработка ПО', direction: 'Разработка ПО', headerRowIndex: 0 },
   { name: 'Проекты пром дизайн', direction: 'Промышленный дизайн', headerRowIndex: 0 },
+  { name: 'Проекты разработки', direction: 'Разработка', headerRowIndex: 0 },
+  { name: 'Проекты ML', direction: 'ML', headerRowIndex: 0 },
 ];
 
 export async function getDashboardData(spreadsheetId) {
@@ -40,10 +42,10 @@ export async function getDashboardData(spreadsheetId) {
             executor: row['_компания_исполнитель'] || '',
             totalCost: row['итоговая_стоимость'] || '',
             goal: row['_цель_проекта'] || '',
-            expectedResult: row['_ожидаемый_результат'] || row['ожидаемый_результат'] || '',
+            expectedResult: row['_ожидаемый_результат'] || row['ожидаемый_результат'] || row['ожидаемый_продукт,_потребность_которую_закрываем'] || row['_ожидаемый_продукт,_потребность_которую_закрываем'] || '',
             stack: row['стек'] || row['_стек'] || '',
-            projectLink: row['ссылка_на_проект'] || row['_ссылка_на_проект'] || '',
-            resultLink: row['ссылка_на_результат'] || row['_ссылка_на_результат'] || '',
+            projectLink: row['ссылка_на_проект'] || row['_ссылка_на_проект'] || row['ссылка_на_макет'] || row['_ссылка_на_макет'] || '',
+            resultLink: row['ссылка_на_результат'] || row['_ссылка_на_результат'] || row['ссылка_на_готовый_результат'] || row['_ссылка_на_готовый_результат'] || '',
             comment: row['комментарий'] || row['_комментарий'] || '',
             financials: {
               cost: row['расчет_стоимости_услуг'] || '',

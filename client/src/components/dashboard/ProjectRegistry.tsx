@@ -177,9 +177,17 @@ function renderLink(url: string, label?: string) {
 }
 
 // Format team members as a readable string
-function formatTeamMembers(team: TeamMember[], field: 'name' | 'role' | 'employment'): string {
+function formatTeamMembers(team: TeamMember[], field: 'name' | 'role' | 'employment'): React.ReactNode {
     if (!team || team.length === 0) return '-';
-    return team.map(m => m[field] || '').filter(Boolean).join(', ') || '-';
+    const values = team.map(m => m[field] || '-');
+    if (values.every(v => v === '-' || v === '')) return '-';
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            {values.map((val, idx) => (
+                <Box key={idx} sx={{ whiteSpace: 'nowrap' }}>{val || '-'}</Box>
+            ))}
+        </Box>
+    );
 }
 
 function Row({ direction, projects }: { direction: string, projects: Project[] }) {
