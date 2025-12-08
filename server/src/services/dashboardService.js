@@ -40,6 +40,11 @@ export async function getDashboardData(spreadsheetId) {
             executor: row['_компания_исполнитель'] || '',
             totalCost: row['итоговая_стоимость'] || '',
             goal: row['_цель_проекта'] || '',
+            expectedResult: row['_ожидаемый_результат'] || row['ожидаемый_результат'] || '',
+            stack: row['стек'] || row['_стек'] || '',
+            projectLink: row['ссылка_на_проект'] || row['_ссылка_на_проект'] || '',
+            resultLink: row['ссылка_на_результат'] || row['_ссылка_на_результат'] || '',
+            comment: row['комментарий'] || row['_комментарий'] || '',
             financials: {
               cost: row['расчет_стоимости_услуг'] || '',
               kp: row['_кп'] || ''
@@ -54,6 +59,7 @@ export async function getDashboardData(spreadsheetId) {
             // Always take team info from current row
             teamMemberName: row['команда_фио'] || '',
             teamMemberRole: row['роль_в_проекте'] || '',
+            teamMemberEmployment: row['трудоустройство'] || row['_трудоустройство'] || '',
           };
         }
         return null;
@@ -78,6 +84,11 @@ export async function getDashboardData(spreadsheetId) {
           customer: p.customer,
           customerContacts: p.customerContacts,
           goal: p.goal,
+          expectedResult: p.expectedResult,
+          stack: p.stack,
+          projectLink: p.projectLink,
+          resultLink: p.resultLink,
+          comment: p.comment,
           team: [],
           financials: p.financials,
           totalCost: p.totalCost,
@@ -92,7 +103,7 @@ export async function getDashboardData(spreadsheetId) {
           groupedProjects[key].team.push({
             name: p.teamMemberName,
             role: p.teamMemberRole,
-            employment: p.executor
+            employment: p.teamMemberEmployment || p.executor
           });
         }
       }
