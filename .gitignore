@@ -40,4 +40,9 @@ coverage/
 
 nir-center-dashboard-31d551f58f41.json
 
+# Database
+server/data/
+*.db
+*.db-shm
+*.db-wal
 
