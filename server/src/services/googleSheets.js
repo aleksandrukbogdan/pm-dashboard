@@ -1,14 +1,30 @@
 import { google } from 'googleapis';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Load service account credentials
-const credentialsPath = path.join(__dirname, '../../../nir-center-dashboard-31d551f58f41.json');
-const credentials = JSON.parse(readFileSync(credentialsPath, 'utf8'));
+// Priority: 1) GOOGLE_CREDENTIALS env var, 2) local file
+let credentials;
+
+if (process.env.GOOGLE_CREDENTIALS) {
+  // Production: credentials from environment variable
+  credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+} else {
+  // Development: credentials from local file
+  const credentialsPath = path.join(__dirname, '../../../nir-center-dashboard-31d551f58f41.json');
+  if (existsSync(credentialsPath)) {
+    credentials = JSON.parse(readFileSync(credentialsPath, 'utf8'));
+  } else {
+    throw new Error('Google credentials not found. Set GOOGLE_CREDENTIALS env var or provide credentials file.');
+  }
+}
 
 // Initialize Google Sheets API
 const auth = new google.auth.GoogleAuth({
