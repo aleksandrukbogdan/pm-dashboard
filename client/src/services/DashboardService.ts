@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api';
+// Use relative path - works with Vite proxy in dev and Vercel rewrites in prod
+const API_URL = '/api';
 
 export interface DashboardData {
     summary: {
