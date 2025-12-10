@@ -2,64 +2,38 @@ import db from './db.js';
 import { getDashboardData } from './dashboardService.js';
 
 /**
- * Get the start of the week (Monday) for a given date
+ * Get today's date as key for snapshot
  */
-function getWeekStart(date = new Date()) {
+function getDateKey(date = new Date()) {
     const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
-    const monday = new Date(d.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
+    d.setHours(0, 0, 0, 0);
 
-    // Format as YYYY-MM-DD using local date (not UTC!)
-    const year = monday.getFullYear();
-    const month = String(monday.getMonth() + 1).padStart(2, '0');
-    const dayOfMonth = String(monday.getDate()).padStart(2, '0');
+    // Format as YYYY-MM-DD using local date
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const dayOfMonth = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${dayOfMonth}`;
 }
 
 /**
- * Format week for display: "Неделя 49 (02.12 - 08.12.2024)"
+ * Format date for display: "10.12.2024"
  */
-function formatWeekDisplay(weekStart) {
-    // Parse as local date to avoid timezone shifts
-    const [year, month, day] = weekStart.split('-').map(Number);
-    const start = new Date(year, month - 1, day);
-    const end = new Date(year, month - 1, day + 6);
-
-    const weekNumber = getWeekNumber(start);
-    const startStr = formatDateRu(start);
-    const endStr = formatDateRu(end);
-
-    return `Неделя ${weekNumber} (${startStr} - ${endStr})`;
-}
-
-function getWeekNumber(date) {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
-    const week1 = new Date(d.getFullYear(), 0, 4);
-    return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-}
-
-function formatDateRu(date) {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}.${month}.${year}`;
+function formatDateDisplay(dateKey) {
+    const [year, month, day] = dateKey.split('-').map(Number);
+    return `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`;
 }
 
 /**
  * Create a snapshot of the current dashboard data
  */
 export async function createSnapshot(spreadsheetId) {
-    const weekStart = getWeekStart();
+    const dateKey = getDateKey();
 
     // Get current dashboard data
     const data = await getDashboardData(spreadsheetId);
 
-    // Check if snapshot already exists for this week
-    const existing = db.prepare('SELECT id FROM snapshots WHERE week_start = ?').get(weekStart);
+    // Check if snapshot already exists for today
+    const existing = db.prepare('SELECT id FROM snapshots WHERE week_start = ?').get(dateKey);
 
     if (existing) {
         // Update existing snapshot
@@ -72,7 +46,7 @@ export async function createSnapshot(spreadsheetId) {
             JSON.stringify(data.summary),
             JSON.stringify(data.charts),
             JSON.stringify(data.projects),
-            weekStart
+            dateKey
         );
     } else {
         // Insert new snapshot
@@ -81,7 +55,7 @@ export async function createSnapshot(spreadsheetId) {
       VALUES (?, ?, ?, ?)
     `);
         stmt.run(
-            weekStart,
+            dateKey,
             JSON.stringify(data.summary),
             JSON.stringify(data.charts),
             JSON.stringify(data.projects)
@@ -89,10 +63,10 @@ export async function createSnapshot(spreadsheetId) {
     }
 
     // Update project history
-    await updateProjectHistory(data.projects, weekStart);
+    await updateProjectHistory(data.projects, dateKey);
 
-    console.log(`Snapshot created for week: ${weekStart}`);
-    return { success: true, weekStart, display: formatWeekDisplay(weekStart) };
+    console.log(`Snapshot created for date: ${dateKey}`);
+    return { success: true, weekStart: dateKey, display: formatDateDisplay(dateKey) };
 }
 
 /**
@@ -105,13 +79,13 @@ async function updateProjectHistory(projects, weekStart) {
     VALUES (?, ?, ?, ?, ?, ?)
   `);
 
-    // Get previous week data for comparison
-    const prevWeekStart = getPreviousWeekStart(weekStart);
+    // Get previous day's data for comparison
+    const prevDateKey = getPreviousDateKey(weekStart);
     const previousHistoryMap = new Map();
 
     const prevRecords = db.prepare(
         'SELECT project_key, status FROM project_history WHERE week_start = ?'
-    ).all(prevWeekStart);
+    ).all(prevDateKey);
 
     prevRecords.forEach(r => previousHistoryMap.set(r.project_key, r.status));
 
@@ -147,9 +121,9 @@ async function updateProjectHistory(projects, weekStart) {
     }
 }
 
-function getPreviousWeekStart(weekStart) {
-    const date = new Date(weekStart);
-    date.setDate(date.getDate() - 7);
+function getPreviousDateKey(dateKey) {
+    const date = new Date(dateKey);
+    date.setDate(date.getDate() - 1);
     return date.toISOString().split('T')[0];
 }
 
@@ -166,7 +140,7 @@ export function getSnapshot(weekStart) {
     return {
         weekStart: row.week_start,
         createdAt: row.created_at,
-        display: formatWeekDisplay(row.week_start),
+        display: formatDateDisplay(row.week_start),
         summary: JSON.parse(row.summary),
         charts: JSON.parse(row.charts),
         projects: JSON.parse(row.projects)
@@ -174,20 +148,20 @@ export function getSnapshot(weekStart) {
 }
 
 /**
- * Get list of all available weeks
+ * Get list of all available snapshots (dates)
  */
 export function getAvailableWeeks() {
     const rows = db.prepare(
         'SELECT week_start, created_at FROM snapshots ORDER BY week_start DESC'
     ).all();
 
-    const currentWeekStart = getWeekStart();
+    const currentDateKey = getDateKey();
 
     return rows.map(row => ({
         weekStart: row.week_start,
-        display: formatWeekDisplay(row.week_start),
+        display: formatDateDisplay(row.week_start),
         createdAt: row.created_at,
-        isCurrent: row.week_start === currentWeekStart
+        isCurrent: row.week_start === currentDateKey
     }));
 }
 
@@ -204,7 +178,7 @@ export function getProjectHistory(projectKey) {
 
     return rows.map(row => ({
         weekStart: row.week_start,
-        display: formatWeekDisplay(row.week_start),
+        display: formatDateDisplay(row.week_start),
         status: row.status,
         statusChangedAt: row.status_changed_at,
         previousStatus: row.previous_status,
@@ -262,5 +236,5 @@ export function deleteSnapshot(weekStart) {
     return { success: result.changes > 0, weekStart };
 }
 
-export { getWeekStart, formatWeekDisplay };
+export { getDateKey, formatDateDisplay };
 

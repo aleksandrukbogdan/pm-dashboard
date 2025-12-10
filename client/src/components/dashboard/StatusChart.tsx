@@ -39,6 +39,7 @@ interface StatusChartProps {
     projects?: Project[];
     selectedStatus?: string | null;
     onStatusClick?: (status: string | null) => void;
+    statusDurations?: Record<string, number | null>;
 }
 
 type ViewMode = 'count' | 'time';
@@ -48,7 +49,8 @@ export default function StatusChart({
     showCompleted = true,
     projects = [],
     selectedStatus,
-    onStatusClick
+    onStatusClick,
+    statusDurations = {}
 }: StatusChartProps) {
     const [viewMode, setViewMode] = useState<ViewMode>('count');
 
@@ -83,21 +85,30 @@ export default function StatusChart({
     });
     const colors = orderedStatuses.map(status => STATUS_COLORS[status] || '#03a9f4');
 
-    // Placeholder time data (in days) - stub for future implementation
-    const timeData = orderedStatuses.map(() => Math.floor(Math.random() * 30) + 5);
+    // Get projects for a specific status (case-insensitive match)
+    const getProjectsForStatus = (status: string): { name: string; duration: number | null }[] => {
+        const lowerStatus = status.toLowerCase().trim();
+        return projects
+            .filter(p => (p.status?.toLowerCase().trim() || '') === lowerStatus)
+            .map(p => {
+                const projectKey = `${p.name}|${p.direction}`;
+                return {
+                    name: p.name,
+                    duration: statusDurations[projectKey] ?? null
+                };
+            });
+    };
+
+    // Calculate time sum for each status
+    const timeData = orderedStatuses.map(status => {
+        const projectsInStatus = getProjectsForStatus(status);
+        return projectsInStatus.reduce((sum, p) => sum + (p.duration || 0), 0);
+    });
 
     const handleViewModeChange = (_: React.MouseEvent<HTMLElement>, newMode: ViewMode | null) => {
         if (newMode !== null) {
             setViewMode(newMode);
         }
-    };
-
-    // Get projects for a specific status (case-insensitive match)
-    const getProjectsForStatus = (status: string): string[] => {
-        const lowerStatus = status.toLowerCase().trim();
-        return projects
-            .filter(p => (p.status?.toLowerCase().trim() || '') === lowerStatus)
-            .map(p => p.name);
     };
 
     return (
@@ -149,7 +160,6 @@ export default function StatusChart({
                             : Math.max(...timeData, 1);
                         const barHeight = (value / maxValue) * 160;
                         const color = colors[index];
-                        const projectNames = getProjectsForStatus(status);
                         const isSelected = !selectedStatus || selectedStatus === status;
 
                         return (
@@ -175,18 +185,23 @@ export default function StatusChart({
                                 }}
                             >
                                 <Tooltip
-                                    title={projectNames.length > 0 ? (
-                                        <Box sx={{ p: 0.5 }}>
-                                            <Typography variant="caption" fontWeight="bold" display="block">
-                                                {status}
-                                            </Typography>
-                                            {projectNames.map((name, i) => (
-                                                <Typography key={i} variant="caption" display="block">
-                                                    • {name}
+                                    title={(() => {
+                                        const projectsInStatus = getProjectsForStatus(status);
+                                        if (projectsInStatus.length === 0) return status;
+
+                                        return (
+                                            <Box sx={{ p: 0.5 }}>
+                                                <Typography variant="caption" fontWeight="bold" display="block">
+                                                    {status}
                                                 </Typography>
-                                            ))}
-                                        </Box>
-                                    ) : status}
+                                                {projectsInStatus.map((proj, i) => (
+                                                    <Typography key={i} variant="caption" display="block">
+                                                        • {proj.name}{viewMode === 'time' && proj.duration !== null ? ` — ${proj.duration} дн.` : ''}
+                                                    </Typography>
+                                                ))}
+                                            </Box>
+                                        );
+                                    })()}
                                     arrow
                                     placement="top"
                                 >
@@ -244,21 +259,7 @@ export default function StatusChart({
                     ))}
                 </Box>
 
-                {/* Time mode indicator */}
-                {viewMode === 'time' && (
-                    <Box sx={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        textAlign: 'center',
-                        pb: 1
-                    }}>
-                        <Typography variant="caption" color="text.secondary" fontStyle="italic">
-                            (заглушка — данные не реальные)
-                        </Typography>
-                    </Box>
-                )}
+
             </Box>
         </Paper>
     );

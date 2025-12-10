@@ -24,6 +24,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [selectedDirection, setSelectedDirection] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
+  const [statusDurations, setStatusDurations] = useState<Record<string, number | null>>({});
 
   const fetchData = useCallback(async () => {
     try {
@@ -113,6 +114,27 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
     return projects;
   }, [data, selectedDirection, selectedStatus, selectedDeadlineStatus, organizationFilter, showCompleted]);
+
+  // Fetch status durations for filtered projects
+  useEffect(() => {
+    const fetchDurations = async () => {
+      if (!filteredProjects || filteredProjects.length === 0) {
+        setStatusDurations({});
+        return;
+      }
+
+      try {
+        const projectKeys = filteredProjects.map((p: any) => `${p.name}|${p.direction}`);
+        const durations = await DashboardService.getStatusDurations(projectKeys);
+        setStatusDurations(durations);
+      } catch (err) {
+        console.error('Failed to fetch status durations:', err);
+        setStatusDurations({});
+      }
+    };
+
+    fetchDurations();
+  }, [filteredProjects]);
 
   // Recalculate stats based on filtered projects
   const filteredStats = useMemo(() => {
@@ -313,6 +335,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
             projects={filteredProjects}
             selectedStatus={selectedStatus}
             onStatusClick={setSelectedStatus}
+            statusDurations={statusDurations}
           />
         </Grid>
         <Grid item xs={12} md={6}>

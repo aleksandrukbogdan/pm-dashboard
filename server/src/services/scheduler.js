@@ -5,22 +5,22 @@ import { createSnapshot } from './snapshotService.js';
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID || '1wqIvBBVGWFAlqYD42yYLm859h6uCWGBnCkUq5rv0ZeQ';
 
 /**
- * Initialize the scheduler for weekly snapshots
- * Runs every Monday at 00:00
+ * Initialize the scheduler for daily snapshots
+ * Runs every day at 00:00
  */
 export function initScheduler() {
-    // Schedule: At 00:00 on Monday
-    cron.schedule('0 0 * * 1', async () => {
-        console.log('Weekly snapshot scheduled task running...');
+    // Schedule: At 00:00 every day
+    cron.schedule('0 0 * * *', async () => {
+        console.log('Daily snapshot scheduled task running...');
         try {
             const result = await createSnapshot(SPREADSHEET_ID);
-            console.log(`Weekly snapshot completed: ${result.display}`);
+            console.log(`Daily snapshot completed: ${result.display}`);
         } catch (error) {
-            console.error('Weekly snapshot failed:', error);
+            console.error('Daily snapshot failed:', error);
         }
     });
 
-    console.log('Scheduler initialized: Weekly snapshots every Monday at 00:00');
+    console.log('Scheduler initialized: Daily snapshots every day at 00:00');
 }
 
 /**
