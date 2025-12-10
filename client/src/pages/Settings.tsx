@@ -100,7 +100,7 @@ export default function Settings() {
               sx={{
                 width: 80,
                 height: 80,
-                background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+                background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
                 fontSize: '1.5rem',
                 fontWeight: 700,
               }}
@@ -127,8 +127,8 @@ export default function Settings() {
                   size="small"
                   sx={{
                     borderRadius: 2,
-                    borderColor: alpha('#5B5FE3', 0.3),
-                    color: '#5B5FE3',
+                    borderColor: alpha('#2B3674', 0.3),
+                    color: '#2B3674',
                   }}
                 >
                   Сменить пароль
@@ -173,8 +173,8 @@ export default function Settings() {
                         mr: 2,
                         p: 1,
                         borderRadius: 2,
-                        backgroundColor: alpha('#5B5FE3', 0.08),
-                        color: '#5B5FE3',
+                        backgroundColor: alpha('#2B3674', 0.08),
+                        color: '#2B3674',
                         display: 'flex',
                       }}
                     >
@@ -198,12 +198,12 @@ export default function Settings() {
                           defaultChecked={item.defaultValue}
                           sx={{
                             '& .MuiSwitch-switchBase.Mui-checked': {
-                              color: '#5B5FE3',
+                              color: '#2B3674',
                             },
                             '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track':
-                              {
-                                backgroundColor: '#5B5FE3',
-                              },
+                            {
+                              backgroundColor: '#2B3674',
+                            },
                           }}
                         />
                       ) : (

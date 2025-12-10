@@ -44,7 +44,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
           boxSizing: 'border-box',
           background: 'linear-gradient(180deg, #FFFFFF 0%, #F8F7FF 100%)',
           borderRight: '1px solid',
-          borderColor: alpha('#5B5FE3', 0.08),
+          borderColor: alpha('#2B3674', 0.08),
         },
       }}
     >
@@ -66,7 +66,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
             sx={{
               width: 40,
               height: 40,
-              background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+              background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
               boxShadow: '0 4px 14px rgba(91, 95, 227, 0.35)',
             }}
           >
@@ -78,7 +78,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
             variant="subtitle1"
             sx={{
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+              background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -128,12 +128,12 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
                     mb: 0.5,
                     py: 1,
                     '&.Mui-selected': {
-                      background: alpha('#5B5FE3', 0.1),
+                      background: alpha('#2B3674', 0.1),
                       '& .MuiListItemIcon-root': {
-                        color: '#5B5FE3',
+                        color: '#2B3674',
                       },
                       '& .MuiListItemText-primary': {
-                        color: '#5B5FE3',
+                        color: '#2B3674',
                         fontWeight: 600,
                       },
                     },
@@ -142,7 +142,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
                   <ListItemIcon
                     sx={{
                       minWidth: 36,
-                      color: isActive ? '#5B5FE3' : 'text.secondary',
+                      color: isActive ? '#2B3674' : 'text.secondary',
                     }}
                   >
                     {item.icon}
@@ -160,7 +160,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
                         width: 3,
                         height: 20,
                         borderRadius: 2,
-                        background: 'linear-gradient(180deg, #5B5FE3 0%, #7C5CBF 100%)',
+                        background: 'linear-gradient(180deg, #2B3674 0%, #7C5CBF 100%)',
                       }}
                     />
                   )}
@@ -177,9 +177,9 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
           sx={{
             p: 1.5,
             borderRadius: 2,
-            background: alpha('#5B5FE3', 0.04),
+            background: alpha('#2B3674', 0.04),
             border: '1px solid',
-            borderColor: alpha('#5B5FE3', 0.1),
+            borderColor: alpha('#2B3674', 0.1),
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

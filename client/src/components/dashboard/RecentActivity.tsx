@@ -35,7 +35,7 @@ const defaultActivities = [
     title: 'Подключите таблицу',
     subtitle: 'Для начала работы',
     time: 'Сейчас',
-    color: '#5B5FE3',
+    color: '#2B3674',
   },
   {
     id: 2,
@@ -59,13 +59,13 @@ export default function RecentActivity({ sheets }: RecentActivityProps) {
   const activities =
     sheets.length > 0
       ? sheets.slice(0, 5).map((sheet, index) => ({
-          id: sheet.id,
-          icon: <SheetIcon />,
-          title: sheet.title,
-          subtitle: `${sheet.rowCount} строк • ${sheet.columnCount} колонок`,
-          time: 'Загружено',
-          color: index % 2 === 0 ? '#5B5FE3' : '#7C5CBF',
-        }))
+        id: sheet.id,
+        icon: <SheetIcon />,
+        title: sheet.title,
+        subtitle: `${sheet.rowCount} строк • ${sheet.columnCount} колонок`,
+        time: 'Загружено',
+        color: index % 2 === 0 ? '#2B3674' : '#7C5CBF',
+      }))
       : defaultActivities;
 
   return (
@@ -144,9 +144,9 @@ export default function RecentActivity({ sheets }: RecentActivityProps) {
               mt: 2,
               p: 2,
               borderRadius: 2,
-              background: `linear-gradient(135deg, ${alpha('#5B5FE3', 0.05)} 0%, ${alpha('#7C5CBF', 0.05)} 100%)`,
+              background: `linear-gradient(135deg, ${alpha('#2B3674', 0.05)} 0%, ${alpha('#7C5CBF', 0.05)} 100%)`,
               border: '1px dashed',
-              borderColor: alpha('#5B5FE3', 0.2),
+              borderColor: alpha('#2B3674', 0.2),
               textAlign: 'center',
             }}
           >

@@ -58,7 +58,7 @@ export default function Header({
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid',
-        borderColor: alpha('#5B5FE3', 0.08),
+        borderColor: alpha('#2B3674', 0.08),
         background: alpha('#FFFFFF', 0.8),
         backdropFilter: 'blur(10px)',
         position: 'sticky',
@@ -66,25 +66,20 @@ export default function Header({
         zIndex: 100,
       }}
     >
-      {/* Left section: Title */}
+      {/* Left section: Logo */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Typography
-          variant="h5"
-          component="h1"
-          sx={{
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}
-        >
-          НИР↔ЦЕНТР
-        </Typography>
+        <img
+          src="/logo.svg"
+          alt="НИР-ЦЕНТР"
+          style={{ height: 24 }}
+        />
       </Box>
 
-      {/* Center section: Filters */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      {/* Spacer to push filters to the right */}
+      <Box sx={{ flex: 1 }} />
+
+      {/* Right section: Filters */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {/* Completed checkbox */}
         <FormControlLabel
           control={
@@ -92,9 +87,9 @@ export default function Header({
               checked={showCompleted}
               onChange={(e) => onShowCompletedChange(e.target.checked)}
               sx={{
-                color: alpha('#5B5FE3', 0.4),
+                color: alpha('#ED8D48', 0.4),
                 '&.Mui-checked': {
-                  color: '#5B5FE3',
+                  color: '#ED8D48',
                 },
               }}
             />
@@ -118,19 +113,19 @@ export default function Header({
               px: 2,
               py: 0.5,
               border: '1px solid',
-              borderColor: alpha('#5B5FE3', 0.2),
+              borderColor: alpha('#ED8D48', 0.3),
               color: 'text.secondary',
               fontWeight: 500,
               textTransform: 'none',
               '&.Mui-selected': {
-                backgroundColor: '#5B5FE3',
+                backgroundColor: '#ED8D48',
                 color: '#fff',
                 '&:hover': {
-                  backgroundColor: '#4A4ED2',
+                  backgroundColor: '#D97D3A',
                 },
               },
               '&:hover': {
-                backgroundColor: alpha('#5B5FE3', 0.08),
+                backgroundColor: alpha('#ED8D48', 0.08),
               },
             },
           }}
@@ -142,7 +137,7 @@ export default function Header({
       </Box>
 
       {/* Right section: Week picker + AI button */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 3 }}>
         {/* Week picker */}
         <WeekPicker
           selectedWeek={selectedWeek}
@@ -162,13 +157,13 @@ export default function Header({
               onClick={onAIToggle}
               sx={{
                 background: aiOpen
-                  ? 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)'
-                  : alpha('#5B5FE3', 0.1),
-                color: aiOpen ? '#FFF' : '#5B5FE3',
+                  ? 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)'
+                  : alpha('#2B3674', 0.1),
+                color: aiOpen ? '#FFF' : '#2B3674',
                 '&:hover': {
                   background: aiOpen
                     ? 'linear-gradient(135deg, #4A4ED2 0%, #6B4BAE 100%)'
-                    : alpha('#5B5FE3', 0.15),
+                    : alpha('#2B3674', 0.15),
                 },
               }}
             >

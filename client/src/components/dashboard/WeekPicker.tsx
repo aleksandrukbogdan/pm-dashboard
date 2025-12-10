@@ -136,7 +136,7 @@ export default function WeekPicker({ selectedWeek, onWeekChange, onDataRefresh, 
                                 borderColor: 'rgba(91, 95, 227, 0.4)',
                             },
                             '&.Mui-focused fieldset': {
-                                borderColor: '#5B5FE3',
+                                borderColor: '#2B3674',
                             },
                         }}
                     >
@@ -220,9 +220,9 @@ export default function WeekPicker({ selectedWeek, onWeekChange, onDataRefresh, 
                         disabled={creating}
                         sx={{
                             borderColor: 'rgba(91, 95, 227, 0.3)',
-                            color: '#5B5FE3',
+                            color: '#2B3674',
                             '&:hover': {
-                                borderColor: '#5B5FE3',
+                                borderColor: '#2B3674',
                                 backgroundColor: 'rgba(91, 95, 227, 0.08)',
                             },
                         }}

@@ -43,10 +43,10 @@ export default function DataChart() {
                 fontSize: '0.8rem',
                 textTransform: 'none',
                 '&.Mui-selected': {
-                  backgroundColor: alpha('#5B5FE3', 0.1),
-                  color: '#5B5FE3',
+                  backgroundColor: alpha('#ED8D48', 0.1),
+                  color: '#ED8D48',
                   '&:hover': {
-                    backgroundColor: alpha('#5B5FE3', 0.15),
+                    backgroundColor: alpha('#ED8D48', 0.15),
                   },
                 },
               },
@@ -87,12 +87,12 @@ export default function DataChart() {
                   height: `${(item.value / maxValue) * 200}px`,
                   minHeight: 20,
                   borderRadius: 2,
-                  background: `linear-gradient(180deg, ${alpha('#5B5FE3', 0.8)} 0%, ${alpha('#7C5CBF', 0.6)} 100%)`,
+                  background: `linear-gradient(180deg, ${alpha('#2B3674', 0.8)} 0%, ${alpha('#7C5CBF', 0.6)} 100%)`,
                   transition: 'all 0.3s ease',
                   cursor: 'pointer',
                   position: 'relative',
                   '&:hover': {
-                    background: `linear-gradient(180deg, #5B5FE3 0%, #7C5CBF 100%)`,
+                    background: `linear-gradient(180deg, #2B3674 0%, #7C5CBF 100%)`,
                     transform: 'scaleY(1.05)',
                     transformOrigin: 'bottom',
                   },
@@ -130,7 +130,7 @@ export default function DataChart() {
                 width: 12,
                 height: 12,
                 borderRadius: 1,
-                background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+                background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
               }}
             />
             <Typography variant="caption" color="text.secondary">

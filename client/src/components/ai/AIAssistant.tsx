@@ -91,7 +91,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
           width: 380,
           background: 'linear-gradient(180deg, #FAFAFF 0%, #F5F3FF 100%)',
           borderLeft: '1px solid',
-          borderColor: alpha('#5B5FE3', 0.12),
+          borderColor: alpha('#2B3674', 0.12),
         },
       }}
     >
@@ -103,7 +103,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '1px solid',
-          borderColor: alpha('#5B5FE3', 0.1),
+          borderColor: alpha('#2B3674', 0.1),
           background: alpha('#FFFFFF', 0.8),
         }}
       >
@@ -112,7 +112,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
             sx={{
               width: 36,
               height: 36,
-              background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+              background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
             }}
           >
             <AIIcon sx={{ fontSize: 20 }} />
@@ -162,7 +162,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
                     sx={{
                       width: 28,
                       height: 28,
-                      background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+                      background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
                     }}
                   >
                     <AIIcon sx={{ fontSize: 16 }} />
@@ -176,7 +176,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
                     borderRadius: 2,
                     background:
                       msg.role === 'user'
-                        ? 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)'
+                        ? 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)'
                         : '#FFFFFF',
                     color: msg.role === 'user' ? '#FFF' : 'text.primary',
                     boxShadow:
@@ -225,9 +225,9 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
                 fontSize: '0.75rem',
                 height: 26,
                 cursor: 'pointer',
-                background: alpha('#5B5FE3', 0.08),
+                background: alpha('#2B3674', 0.08),
                 '&:hover': {
-                  background: alpha('#5B5FE3', 0.15),
+                  background: alpha('#2B3674', 0.15),
                 },
               }}
             />
@@ -240,7 +240,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
         sx={{
           p: 2,
           borderTop: '1px solid',
-          borderColor: alpha('#5B5FE3', 0.1),
+          borderColor: alpha('#2B3674', 0.1),
           background: '#FFFFFF',
         }}
       >
@@ -255,7 +255,7 @@ export default function AIAssistant({ open, onClose }: AIAssistantProps) {
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 3,
-                backgroundColor: alpha('#5B5FE3', 0.04),
+                backgroundColor: alpha('#2B3674', 0.04),
               },
             }}
           />

@@ -318,9 +318,9 @@ export default function ProjectRegistry({ projects }: ProjectRegistryProps) {
                             checked={showOverdue}
                             onChange={(e) => setShowOverdue(e.target.checked)}
                             sx={{
-                                color: alpha('#5B5FE3', 0.4),
+                                color: alpha('#ED8D48', 0.4),
                                 '&.Mui-checked': {
-                                    color: '#5B5FE3',
+                                    color: '#ED8D48',
                                 },
                             }}
                         />

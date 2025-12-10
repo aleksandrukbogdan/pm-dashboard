@@ -160,13 +160,13 @@ export default function DataExplorer({ spreadsheetId }: DataExplorerProps) {
                 onClick={loadSheetData}
                 disabled={loading}
                 sx={{
-                  backgroundColor: alpha('#5B5FE3', 0.1),
+                  backgroundColor: alpha('#2B3674', 0.1),
                   '&:hover': {
-                    backgroundColor: alpha('#5B5FE3', 0.15),
+                    backgroundColor: alpha('#2B3674', 0.15),
                   },
                 }}
               >
-                <RefreshIcon sx={{ color: '#5B5FE3' }} />
+                <RefreshIcon sx={{ color: '#2B3674' }} />
               </IconButton>
             </Tooltip>
 
@@ -224,7 +224,7 @@ export default function DataExplorer({ spreadsheetId }: DataExplorerProps) {
                   height: 8,
                 },
                 '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: alpha('#5B5FE3', 0.2),
+                  backgroundColor: alpha('#2B3674', 0.2),
                   borderRadius: 4,
                 },
               }}
@@ -237,9 +237,9 @@ export default function DataExplorer({ spreadsheetId }: DataExplorerProps) {
                         key={col}
                         sx={{
                           fontWeight: 600,
-                          backgroundColor: alpha('#5B5FE3', 0.04),
+                          backgroundColor: alpha('#2B3674', 0.04),
                           borderBottom: '2px solid',
-                          borderColor: alpha('#5B5FE3', 0.1),
+                          borderColor: alpha('#2B3674', 0.1),
                           textTransform: 'capitalize',
                         }}
                       >
@@ -254,7 +254,7 @@ export default function DataExplorer({ spreadsheetId }: DataExplorerProps) {
                       key={rowIndex}
                       sx={{
                         '&:hover': {
-                          backgroundColor: alpha('#5B5FE3', 0.02),
+                          backgroundColor: alpha('#2B3674', 0.02),
                         },
                       }}
                     >

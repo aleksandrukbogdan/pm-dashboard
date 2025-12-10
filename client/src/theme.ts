@@ -5,15 +5,15 @@ export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#5B5FE3',
-      light: '#8B8EFF',
-      dark: '#3F43B0',
+      main: '#2B3674',
+      light: '#6B6188',
+      dark: '#2E2847',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#7C5CBF',
-      light: '#AF8CF2',
-      dark: '#4A308D',
+      main: '#ED8D48',
+      light: '#F5A86F',
+      dark: '#D97D3A',
       contrastText: '#FFFFFF',
     },
     error: {
@@ -41,42 +41,42 @@ export const theme = createTheme({
       paper: '#FFFFFF',
     },
     text: {
-      primary: '#1C1B1F',
-      secondary: '#49454F',
+      primary: '#2B3674',
+      secondary: '#6B6188',
     },
     divider: alpha('#79757F', 0.12),
   },
   typography: {
-    fontFamily: '"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: '"Onest", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h1: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 700,
+      fontFamily: '"Onest", sans-serif',
+      fontWeight: 500,
       fontSize: '2.5rem',
       letterSpacing: '-0.02em',
     },
     h2: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 600,
+      fontFamily: '"Onest", sans-serif',
+      fontWeight: 500,
       fontSize: '2rem',
       letterSpacing: '-0.01em',
     },
     h3: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 600,
+      fontFamily: '"Onest", sans-serif',
+      fontWeight: 500,
       fontSize: '1.5rem',
     },
     h4: {
-      fontFamily: '"Space Grotesk", sans-serif',
-      fontWeight: 600,
+      fontFamily: '"Onest", sans-serif',
+      fontWeight: 500,
       fontSize: '1.25rem',
     },
     h5: {
-      fontFamily: '"Space Grotesk", sans-serif',
+      fontFamily: '"Onest", sans-serif',
       fontWeight: 500,
       fontSize: '1.1rem',
     },
     h6: {
-      fontFamily: '"Space Grotesk", sans-serif',
+      fontFamily: '"Onest", sans-serif',
       fontWeight: 500,
       fontSize: '1rem',
     },
@@ -85,16 +85,18 @@ export const theme = createTheme({
       fontSize: '1rem',
     },
     body1: {
+      fontWeight: 400,
       fontSize: '0.95rem',
       lineHeight: 1.6,
     },
     body2: {
+      fontWeight: 400,
       fontSize: '0.875rem',
       lineHeight: 1.5,
     },
     button: {
       textTransform: 'none',
-      fontWeight: 600,
+      fontWeight: 500,
     },
   },
   shape: {
@@ -140,7 +142,7 @@ export const theme = createTheme({
           },
         },
         contained: {
-          background: 'linear-gradient(135deg, #5B5FE3 0%, #7C5CBF 100%)',
+          background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
           '&:hover': {
             background: 'linear-gradient(135deg, #4A4ED2 0%, #6B4BAE 100%)',
           },
@@ -178,8 +180,8 @@ export const theme = createTheme({
           fontWeight: 500,
         },
         filled: {
-          backgroundColor: alpha('#5B5FE3', 0.1),
-          color: '#5B5FE3',
+          backgroundColor: alpha('#2B3674', 0.1),
+          color: '#2B3674',
         },
       },
     },
@@ -189,7 +191,7 @@ export const theme = createTheme({
           '& .MuiOutlinedInput-root': {
             borderRadius: 12,
             '&:hover .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#5B5FE3',
+              borderColor: '#2B3674',
             },
           },
         },
@@ -209,9 +211,9 @@ export const theme = createTheme({
           borderRadius: 12,
           margin: '4px 8px',
           '&.Mui-selected': {
-            backgroundColor: alpha('#5B5FE3', 0.1),
+            backgroundColor: alpha('#2B3674', 0.1),
             '&:hover': {
-              backgroundColor: alpha('#5B5FE3', 0.15),
+              backgroundColor: alpha('#2B3674', 0.15),
             },
           },
         },

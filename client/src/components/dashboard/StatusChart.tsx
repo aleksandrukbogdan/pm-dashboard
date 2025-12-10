@@ -117,12 +117,13 @@ export default function StatusChart({
                             px: 2,
                             py: 0.5,
                             fontSize: '0.75rem',
+                            borderColor: 'rgba(237, 141, 72, 0.3)',
                         },
                         '& .Mui-selected': {
-                            bgcolor: 'primary.main',
+                            bgcolor: '#ED8D48',
                             color: 'white',
                             '&:hover': {
-                                bgcolor: 'primary.dark',
+                                bgcolor: '#D97D3A',
                             }
                         }
                     }}
