@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Grid } from '@mui/material';
+import { Typography, Paper, Grid } from '@mui/material';
 
 interface FinancesProps {
     totalBudget: number;

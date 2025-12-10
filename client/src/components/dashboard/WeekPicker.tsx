@@ -15,8 +15,6 @@ import {
     DialogActions,
     TextField,
     Alert,
-    ListItemIcon,
-    ListItemText,
 } from '@mui/material';
 import {
     PhotoCamera as SnapshotIcon,

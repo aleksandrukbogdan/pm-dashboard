@@ -69,7 +69,7 @@ export default function DataChart() {
             pb: 2,
           }}
         >
-          {data.map((item, index) => (
+          {data.map((item) => (
             <Box
               key={item.label}
               sx={{
