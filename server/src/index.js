@@ -5,6 +5,7 @@ import sheetsRoutes from './routes/sheets.js';
 import dashboardRoutes from './routes/dashboard.js';
 import snapshotsRoutes from './routes/snapshots.js';
 import { initScheduler } from './services/scheduler.js';
+import { initDatabase } from './services/db.js';
 
 dotenv.config();
 
@@ -24,9 +25,22 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Initialize database and start server
+async function start() {
+  try {
+    // Initialize database tables
+    await initDatabase();
 
-  // Initialize the weekly snapshot scheduler
-  initScheduler();
-});
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+
+      // Initialize the daily snapshot scheduler
+      initScheduler();
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+start();

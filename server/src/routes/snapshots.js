@@ -15,9 +15,9 @@ const router = express.Router();
  * GET /api/snapshots/weeks
  * Get list of all available weeks with snapshots
  */
-router.get('/weeks', (req, res) => {
+router.get('/weeks', async (req, res) => {
     try {
-        const weeks = getAvailableWeeks();
+        const weeks = await getAvailableWeeks();
         res.json(weeks);
     } catch (error) {
         console.error('Error getting weeks:', error);
@@ -29,10 +29,10 @@ router.get('/weeks', (req, res) => {
  * GET /api/snapshots/:weekStart
  * Get snapshot data for a specific week
  */
-router.get('/:weekStart', (req, res) => {
+router.get('/:weekStart', async (req, res) => {
     try {
         const { weekStart } = req.params;
-        const snapshot = getSnapshot(weekStart);
+        const snapshot = await getSnapshot(weekStart);
 
         if (!snapshot) {
             return res.status(404).json({ error: 'Snapshot not found for this week' });
@@ -63,10 +63,10 @@ router.post('/create', async (req, res) => {
  * GET /api/snapshots/projects/:projectKey/history
  * Get history for a specific project
  */
-router.get('/projects/:projectKey/history', (req, res) => {
+router.get('/projects/:projectKey/history', async (req, res) => {
     try {
         const { projectKey } = req.params;
-        const history = getProjectHistory(decodeURIComponent(projectKey));
+        const history = await getProjectHistory(decodeURIComponent(projectKey));
         res.json(history);
     } catch (error) {
         console.error('Error getting project history:', error);
@@ -78,7 +78,7 @@ router.get('/projects/:projectKey/history', (req, res) => {
  * POST /api/snapshots/status-durations
  * Get status durations for multiple projects
  */
-router.post('/status-durations', (req, res) => {
+router.post('/status-durations', async (req, res) => {
     try {
         const { projectKeys } = req.body;
 
@@ -86,7 +86,7 @@ router.post('/status-durations', (req, res) => {
             return res.status(400).json({ error: 'projectKeys must be an array' });
         }
 
-        const durations = getStatusDurations(projectKeys);
+        const durations = await getStatusDurations(projectKeys);
         res.json(durations);
     } catch (error) {
         console.error('Error getting status durations:', error);
@@ -98,10 +98,10 @@ router.post('/status-durations', (req, res) => {
  * DELETE /api/snapshots/:weekStart
  * Delete a snapshot for a specific week
  */
-router.delete('/:weekStart', (req, res) => {
+router.delete('/:weekStart', async (req, res) => {
     try {
         const { weekStart } = req.params;
-        const result = deleteSnapshot(weekStart);
+        const result = await deleteSnapshot(weekStart);
 
         if (result.success) {
             res.json(result);
@@ -115,4 +115,3 @@ router.delete('/:weekStart', (req, res) => {
 });
 
 export default router;
-

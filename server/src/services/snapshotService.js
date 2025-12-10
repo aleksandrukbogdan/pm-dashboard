@@ -33,33 +33,37 @@ export async function createSnapshot(spreadsheetId) {
     const data = await getDashboardData(spreadsheetId);
 
     // Check if snapshot already exists for today
-    const existing = db.prepare('SELECT id FROM snapshots WHERE week_start = ?').get(dateKey);
+    const { rows: existingRows } = await db.execute({
+        sql: 'SELECT id FROM snapshots WHERE week_start = ?',
+        args: [dateKey]
+    });
+    const existing = existingRows[0];
 
     if (existing) {
         // Update existing snapshot
-        const stmt = db.prepare(`
-      UPDATE snapshots 
-      SET summary = ?, charts = ?, projects = ?, created_at = CURRENT_TIMESTAMP
-      WHERE week_start = ?
-    `);
-        stmt.run(
-            JSON.stringify(data.summary),
-            JSON.stringify(data.charts),
-            JSON.stringify(data.projects),
-            dateKey
-        );
+        await db.execute({
+            sql: `UPDATE snapshots 
+                  SET summary = ?, charts = ?, projects = ?, created_at = CURRENT_TIMESTAMP
+                  WHERE week_start = ?`,
+            args: [
+                JSON.stringify(data.summary),
+                JSON.stringify(data.charts),
+                JSON.stringify(data.projects),
+                dateKey
+            ]
+        });
     } else {
         // Insert new snapshot
-        const stmt = db.prepare(`
-      INSERT INTO snapshots (week_start, summary, charts, projects)
-      VALUES (?, ?, ?, ?)
-    `);
-        stmt.run(
-            dateKey,
-            JSON.stringify(data.summary),
-            JSON.stringify(data.charts),
-            JSON.stringify(data.projects)
-        );
+        await db.execute({
+            sql: `INSERT INTO snapshots (week_start, summary, charts, projects)
+                  VALUES (?, ?, ?, ?)`,
+            args: [
+                dateKey,
+                JSON.stringify(data.summary),
+                JSON.stringify(data.charts),
+                JSON.stringify(data.projects)
+            ]
+        });
     }
 
     // Update project history
@@ -73,19 +77,14 @@ export async function createSnapshot(spreadsheetId) {
  * Update project history and detect status changes
  */
 async function updateProjectHistory(projects, weekStart) {
-    const insertStmt = db.prepare(`
-    INSERT OR REPLACE INTO project_history 
-    (project_key, week_start, status, status_changed_at, previous_status, snapshot)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-
     // Get previous day's data for comparison
     const prevDateKey = getPreviousDateKey(weekStart);
     const previousHistoryMap = new Map();
 
-    const prevRecords = db.prepare(
-        'SELECT project_key, status FROM project_history WHERE week_start = ?'
-    ).all(prevDateKey);
+    const { rows: prevRecords } = await db.execute({
+        sql: 'SELECT project_key, status FROM project_history WHERE week_start = ?',
+        args: [prevDateKey]
+    });
 
     prevRecords.forEach(r => previousHistoryMap.set(r.project_key, r.status));
 
@@ -104,20 +103,27 @@ async function updateProjectHistory(projects, weekStart) {
             statusChangedAt = new Date().toISOString();
         } else {
             // Status unchanged - get previous statusChangedAt
-            const prevHistory = db.prepare(
-                'SELECT status_changed_at FROM project_history WHERE project_key = ? ORDER BY week_start DESC LIMIT 1'
-            ).get(projectKey);
+            const { rows: prevHistoryRows } = await db.execute({
+                sql: 'SELECT status_changed_at FROM project_history WHERE project_key = ? ORDER BY week_start DESC LIMIT 1',
+                args: [projectKey]
+            });
+            const prevHistory = prevHistoryRows[0];
             statusChangedAt = prevHistory?.status_changed_at || new Date().toISOString();
         }
 
-        insertStmt.run(
-            projectKey,
-            weekStart,
-            currentStatus,
-            statusChangedAt,
-            previousStatus,
-            JSON.stringify(project)
-        );
+        await db.execute({
+            sql: `INSERT OR REPLACE INTO project_history 
+                  (project_key, week_start, status, status_changed_at, previous_status, snapshot)
+                  VALUES (?, ?, ?, ?, ?, ?)`,
+            args: [
+                projectKey,
+                weekStart,
+                currentStatus,
+                statusChangedAt,
+                previousStatus,
+                JSON.stringify(project)
+            ]
+        });
     }
 }
 
@@ -130,8 +136,12 @@ function getPreviousDateKey(dateKey) {
 /**
  * Get snapshot for a specific week
  */
-export function getSnapshot(weekStart) {
-    const row = db.prepare('SELECT * FROM snapshots WHERE week_start = ?').get(weekStart);
+export async function getSnapshot(weekStart) {
+    const { rows } = await db.execute({
+        sql: 'SELECT * FROM snapshots WHERE week_start = ?',
+        args: [weekStart]
+    });
+    const row = rows[0];
 
     if (!row) {
         return null;
@@ -150,10 +160,10 @@ export function getSnapshot(weekStart) {
 /**
  * Get list of all available snapshots (dates)
  */
-export function getAvailableWeeks() {
-    const rows = db.prepare(
+export async function getAvailableWeeks() {
+    const { rows } = await db.execute(
         'SELECT week_start, created_at FROM snapshots ORDER BY week_start DESC'
-    ).all();
+    );
 
     const currentDateKey = getDateKey();
 
@@ -168,13 +178,14 @@ export function getAvailableWeeks() {
 /**
  * Get project history (all snapshots for a project)
  */
-export function getProjectHistory(projectKey) {
-    const rows = db.prepare(`
-    SELECT week_start, status, status_changed_at, previous_status, snapshot
-    FROM project_history 
-    WHERE project_key = ?
-    ORDER BY week_start DESC
-  `).all(projectKey);
+export async function getProjectHistory(projectKey) {
+    const { rows } = await db.execute({
+        sql: `SELECT week_start, status, status_changed_at, previous_status, snapshot
+              FROM project_history 
+              WHERE project_key = ?
+              ORDER BY week_start DESC`,
+        args: [projectKey]
+    });
 
     return rows.map(row => ({
         weekStart: row.week_start,
@@ -189,13 +200,15 @@ export function getProjectHistory(projectKey) {
 /**
  * Calculate how long a project has been on its current status (in days)
  */
-export function calculateStatusDuration(projectKey) {
-    const history = db.prepare(`
-    SELECT status_changed_at FROM project_history 
-    WHERE project_key = ?
-    ORDER BY week_start DESC
-    LIMIT 1
-  `).get(projectKey);
+export async function calculateStatusDuration(projectKey) {
+    const { rows } = await db.execute({
+        sql: `SELECT status_changed_at FROM project_history 
+              WHERE project_key = ?
+              ORDER BY week_start DESC
+              LIMIT 1`,
+        args: [projectKey]
+    });
+    const history = rows[0];
 
     if (!history?.status_changed_at) {
         return null;
@@ -212,11 +225,11 @@ export function calculateStatusDuration(projectKey) {
 /**
  * Get status durations for multiple projects
  */
-export function getStatusDurations(projectKeys) {
+export async function getStatusDurations(projectKeys) {
     const durations = {};
 
     for (const key of projectKeys) {
-        durations[key] = calculateStatusDuration(key);
+        durations[key] = await calculateStatusDuration(key);
     }
 
     return durations;
@@ -225,16 +238,21 @@ export function getStatusDurations(projectKeys) {
 /**
  * Delete a snapshot for a specific week
  */
-export function deleteSnapshot(weekStart) {
+export async function deleteSnapshot(weekStart) {
     // Delete from snapshots table
-    const result = db.prepare('DELETE FROM snapshots WHERE week_start = ?').run(weekStart);
+    const result = await db.execute({
+        sql: 'DELETE FROM snapshots WHERE week_start = ?',
+        args: [weekStart]
+    });
 
     // Also delete related project history
-    db.prepare('DELETE FROM project_history WHERE week_start = ?').run(weekStart);
+    await db.execute({
+        sql: 'DELETE FROM project_history WHERE week_start = ?',
+        args: [weekStart]
+    });
 
     console.log(`Deleted snapshot for week: ${weekStart}`);
-    return { success: result.changes > 0, weekStart };
+    return { success: result.rowsAffected > 0, weekStart };
 }
 
 export { getDateKey, formatDateDisplay };
-
