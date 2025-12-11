@@ -3,7 +3,7 @@ import { getSheetDataAsObjects } from './googleSheets.js';
 const SHEET_MAPPINGS = [
   { name: 'Проекты WEB', direction: 'Web', headerRowIndex: 1 },
   { name: 'Проекты mobile', direction: 'Mobile', headerRowIndex: 0 },
-  { name: 'Design (графичесикй)', direction: 'Design', headerRowIndex: 0 },
+  { name: 'Design (графический)', direction: 'Design', headerRowIndex: 0 },
   { name: 'Проекты разработка ПО', direction: 'Разработка ПО', headerRowIndex: 0 },
   { name: 'Проекты пром дизайн', direction: 'Промышленный дизайн', headerRowIndex: 0 },
   { name: 'Проекты разработки', direction: 'Разработка', headerRowIndex: 0 },
