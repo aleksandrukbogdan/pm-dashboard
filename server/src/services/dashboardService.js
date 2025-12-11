@@ -6,7 +6,6 @@ const SHEET_MAPPINGS = [
   { name: 'Design (графический)', direction: 'Design', headerRowIndex: 0 },
   { name: 'Проекты разработка ПО', direction: 'Разработка ПО', headerRowIndex: 0 },
   { name: 'Проекты пром дизайн', direction: 'Промышленный дизайн', headerRowIndex: 0 },
-  { name: 'Проекты разработки', direction: 'Разработка', headerRowIndex: 0 },
   { name: 'Проекты ML', direction: 'ML', headerRowIndex: 0 },
 ];
 
