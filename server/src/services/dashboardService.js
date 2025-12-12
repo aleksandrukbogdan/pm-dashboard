@@ -9,6 +9,15 @@ const SHEET_MAPPINGS = [
   { name: 'Проекты ML', direction: 'ML', headerRowIndex: 0 },
 ];
 
+// Helper function to normalize name:
+// - Replace ё with е (Алёна = Алена)
+// - Take only first 2 words (Surname + FirstName)
+function normalizeName(name) {
+  const normalized = name.trim().replace(/ё/g, 'е').replace(/Ё/g, 'Е');
+  const parts = normalized.split(/\s+/);
+  return parts.slice(0, 2).join(' ');
+}
+
 export async function getDashboardData(spreadsheetId) {
   try {
     const allProjects = [];
@@ -21,8 +30,10 @@ export async function getDashboardData(spreadsheetId) {
 
       // Normalize rows with fill-down logic
       const normalizedRows = rows.map(row => {
-        // Find dynamic status column (starts with _этап_проекта_на_)
-        const statusKey = Object.keys(row).find(k => k.startsWith('_этап_проекта_на_'));
+        // Find dynamic status column (starts with _этап_проекта_на_ or just _этап_проекта)
+        const statusKey = Object.keys(row).find(k =>
+          k.startsWith('_этап_проекта_на_') || k === '_этап_проекта'
+        );
         const status = statusKey ? row[statusKey] : '';
 
         const name = row['наименование_проекта'];
@@ -97,25 +108,43 @@ export async function getDashboardData(spreadsheetId) {
         };
       }
 
-      // Add team member if exists and not duplicate
+      // Add team members if exist and not duplicate
+      // Split comma-separated names and normalize
       if (p.teamMemberName) {
-        const exists = groupedProjects[key].team.some(m => m.name === p.teamMemberName);
-        if (!exists) {
-          groupedProjects[key].team.push({
-            name: p.teamMemberName,
-            role: p.teamMemberRole,
-            employment: p.teamMemberEmployment || p.executor
-          });
-        }
+        const names = p.teamMemberName.split(',').map(n => n.trim()).filter(n => n);
+        names.forEach(fullName => {
+          const normalizedName = normalizeName(fullName);
+
+          const exists = groupedProjects[key].team.some(m => m.name === normalizedName);
+          if (!exists && normalizedName) {
+            groupedProjects[key].team.push({
+              name: normalizedName,
+              role: p.teamMemberRole,
+              employment: p.teamMemberEmployment || p.executor
+            });
+          }
+        });
       }
     });
 
     const projects = Object.values(groupedProjects);
 
     // Calculate stats
+    // Count unique team members (normalized names)
+    const allNormalizedNames = new Set();
+    allProjects.forEach(p => {
+      if (p.teamMemberName) {
+        const names = p.teamMemberName.split(',').map(n => n.trim()).filter(n => n);
+        names.forEach(fullName => {
+          const normalized = normalizeName(fullName);
+          if (normalized) allNormalizedNames.add(normalized);
+        });
+      }
+    });
+
     const summary = {
       totalProjects: projects.length,
-      totalTeamMembers: new Set(allProjects.map(p => p.teamMemberName).filter(Boolean)).size,
+      totalTeamMembers: allNormalizedNames.size,
       totalBudget: calculateTotalBudget(projects)
     };
 
@@ -224,13 +253,20 @@ function calculateTeamRoles(allRows) {
 
   allRows.forEach(row => {
     if (row.teamMemberName && row.teamMemberRole) {
-      const memberKey = `${row.teamMemberName}|${row.teamMemberRole}`;
+      const role = row.teamMemberRole.trim();
 
-      if (!seenMembers.has(memberKey)) {
-        const role = row.teamMemberRole.trim();
-        stats[role] = (stats[role] || 0) + 1;
-        seenMembers.add(memberKey);
-      }
+      // Split comma-separated names (e.g., "Ткаченко Олеся, Алимов Дамир")
+      const names = row.teamMemberName.split(',').map(n => n.trim()).filter(n => n);
+
+      names.forEach(fullName => {
+        const normalizedName = normalizeName(fullName);
+        const memberKey = `${normalizedName}|${role}`;
+
+        if (!seenMembers.has(memberKey) && normalizedName) {
+          stats[role] = (stats[role] || 0) + 1;
+          seenMembers.add(memberKey);
+        }
+      });
     }
   });
   return stats;
