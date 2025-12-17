@@ -50,7 +50,8 @@ export async function getDashboardData(spreadsheetId) {
             customer: row['_заказчик'] || '',
             customerContacts: row['_контакты_заказчика'] || '',
             executor: row['_компания_исполнитель'] || '',
-            totalCost: row['итоговая_стоимость'] || '',
+            totalCost: row['итоговая_стоимость'] || row['_итоговая_стоимость'] || '',
+            paymentStatus: row['оплата_проекта'] || '',
             goal: row['_цель_проекта'] || '',
             expectedResult: row['_ожидаемый_результат'] || row['ожидаемый_результат'] || row['ожидаемый_продукт,_потребность_которую_закрываем'] || row['_ожидаемый_продукт,_потребность_которую_закрываем'] || '',
             stack: row['стек'] || row['_стек'] || '',
@@ -104,7 +105,9 @@ export async function getDashboardData(spreadsheetId) {
           team: [],
           financials: p.financials,
           totalCost: p.totalCost,
-          type: p.type
+          paymentStatus: p.paymentStatus,
+          type: p.type,
+          executor: p.executor
         };
       }
 
@@ -142,10 +145,13 @@ export async function getDashboardData(spreadsheetId) {
       }
     });
 
+    const financialBreakdown = calculateFinancialBreakdown(projects);
+
     const summary = {
       totalProjects: projects.length,
       totalTeamMembers: allNormalizedNames.size,
-      totalBudget: calculateTotalBudget(projects)
+      totalBudget: financialBreakdown.total,
+      financialBreakdown: financialBreakdown
     };
 
     const charts = {
@@ -164,19 +170,55 @@ export async function getDashboardData(spreadsheetId) {
   }
 }
 
+function parseCost(costStr) {
+  if (!costStr) return 0;
+  if (costStr.includes('http') || costStr.match(/\d{2}\.\d{2}/)) {
+    return 0;
+  }
+  const cleanStr = costStr.replace(/р\./g, '').replace(/[^0-9,.-]/g, '').replace(',', '.');
+  const val = parseFloat(cleanStr);
+  return isNaN(val) ? 0 : val;
+}
+
 function calculateTotalBudget(projects) {
   return projects.reduce((sum, p) => {
     const costStr = p.totalCost || p.financials.cost;
-    if (!costStr) return sum;
-
-    if (costStr.includes('http') || costStr.match(/\d{2}\.\d{2}/)) {
-      return sum;
-    }
-
-    const cleanStr = costStr.replace(/р\./g, '').replace(/[^0-9,.-]/g, '').replace(',', '.');
-    const val = parseFloat(cleanStr);
-    return sum + (isNaN(val) ? 0 : val);
+    return sum + parseCost(costStr);
   }, 0);
+}
+
+/**
+ * Calculate financial breakdown by payment status
+ * - inWork: "Счет не выставлен" or empty/dash
+ * - receivable: "Счет выставлен"
+ * - paid: "Оплачено"
+ */
+function calculateFinancialBreakdown(projects) {
+  const breakdown = {
+    total: 0,
+    inWork: 0,
+    receivable: 0,
+    paid: 0
+  };
+
+  projects.forEach(p => {
+    const costStr = p.totalCost || p.financials?.cost;
+    const cost = parseCost(costStr);
+    const paymentStatus = (p.paymentStatus || '').toLowerCase().trim();
+
+    breakdown.total += cost;
+
+    if (paymentStatus.includes('оплачено')) {
+      breakdown.paid += cost;
+    } else if (paymentStatus.includes('счет выставлен')) {
+      breakdown.receivable += cost;
+    } else {
+      // "Счет не выставлен", empty, dash, or any other value -> in work
+      breakdown.inWork += cost;
+    }
+  });
+
+  return breakdown;
 }
 
 function calculateByDirection(projects) {

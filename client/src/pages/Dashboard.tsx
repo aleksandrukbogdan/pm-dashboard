@@ -86,19 +86,14 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       });
     }
 
-    // Filter by organization
+    // Filter by organization based on executor (Компания исполнитель)
     if (organizationFilter !== 'all') {
       projects = projects.filter(p => {
+        const executor = (p.executor || '').toLowerCase();
         if (organizationFilter === 'nir') {
-          return p.team?.some((m: any) => {
-            const emp = m.employment?.toLowerCase() || '';
-            return emp.includes('нир');
-          });
+          return executor.includes('нир');
         } else if (organizationFilter === 'ite29') {
-          return p.team?.some((m: any) => {
-            const emp = m.employment?.toLowerCase() || '';
-            return emp.includes('итэ') || emp.includes('it-') || emp.includes('элемент');
-          });
+          return executor.includes('итэ') || executor.includes('it-') || executor.includes('элемент') || executor.includes('ите-29');
         }
         return true;
       });
@@ -182,14 +177,29 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       else if (status === 'Overdue > 2 weeks') deadlines.overdueLarge++;
     });
 
-    // Calculate total budget from filtered projects
-    let totalBudget = 0;
+    // Calculate total budget and financial breakdown from filtered projects
+    const parseCost = (costStr: string) => {
+      if (!costStr) return 0;
+      if (costStr.includes('http') || costStr.match(/\d{2}\.\d{2}/)) return 0;
+      const cleanStr = costStr.replace(/р\./g, '').replace(/[^0-9,.-]/g, '').replace(',', '.');
+      const val = parseFloat(cleanStr);
+      return isNaN(val) ? 0 : val;
+    };
+
+    const financialBreakdown = { total: 0, inWork: 0, receivable: 0, paid: 0 };
     projects.forEach(p => {
       const costStr = p.totalCost || p.financials?.cost;
-      if (costStr && !costStr.includes('http') && !costStr.match(/\d{2}\.\d{2}/)) {
-        const cleanStr = costStr.replace(/р\./g, '').replace(/[^0-9,.-]/g, '').replace(',', '.');
-        const val = parseFloat(cleanStr);
-        if (!isNaN(val)) totalBudget += val;
+      const cost = parseCost(costStr);
+      const paymentStatus = (p.paymentStatus || '').toLowerCase().trim();
+
+      financialBreakdown.total += cost;
+
+      if (paymentStatus.includes('оплачено')) {
+        financialBreakdown.paid += cost;
+      } else if (paymentStatus.includes('счет выставлен')) {
+        financialBreakdown.receivable += cost;
+      } else {
+        financialBreakdown.inWork += cost;
       }
     });
 
@@ -202,19 +212,14 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       else if (type.includes('безоплатный') || type.includes('бесплатный')) byType.free++;
     });
 
-    // Calculate byCompany from filtered projects
+    // Calculate byCompany from filtered projects based on executor (Компания исполнитель)
     const byCompany = { ite29: 0, nir: 0 };
     projects.forEach(p => {
-      const hasIte29 = p.team?.some((m: any) => {
-        const emp = m.employment?.toLowerCase() || '';
-        return emp.includes('итэ') || emp.includes('it-') || emp.includes('элемент');
-      });
-      const hasNir = p.team?.some((m: any) => {
-        const emp = m.employment?.toLowerCase() || '';
-        return emp.includes('нир');
-      });
-      if (hasIte29) byCompany.ite29++;
-      if (hasNir) byCompany.nir++;
+      const executor = (p.executor || '').toLowerCase();
+      const isIte29 = executor.includes('итэ') || executor.includes('it-') || executor.includes('элемент') || executor.includes('ите-29');
+      const isNir = executor.includes('нир');
+      if (isIte29) byCompany.ite29++;
+      if (isNir) byCompany.nir++;
     });
 
     // Calculate byDirection from filtered projects, but keep all original directions
@@ -239,7 +244,8 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       teamRoles,
       teamMembers,
       deadlines,
-      totalBudget,
+      totalBudget: financialBreakdown.total,
+      financialBreakdown,
       byType,
       byCompany,
       totalProjects: projects.length,
@@ -322,7 +328,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
               />
             </Grid>
             <Grid item xs={12}>
-              <Finances totalBudget={filteredStats.totalBudget} />
+              <Finances totalBudget={filteredStats.totalBudget} financialBreakdown={filteredStats.financialBreakdown} projects={filteredProjects} />
             </Grid>
           </Grid>
         </Grid>

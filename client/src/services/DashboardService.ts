@@ -8,6 +8,12 @@ export interface DashboardData {
         totalProjects: number;
         totalTeamMembers: number;
         totalBudget: number;
+        financialBreakdown?: {
+            total: number;
+            inWork: number;
+            receivable: number;
+            paid: number;
+        };
     };
     charts: {
         byDirection: Record<string, number>;

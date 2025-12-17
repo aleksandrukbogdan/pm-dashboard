@@ -1,32 +1,193 @@
-import { Typography, Paper, Grid } from '@mui/material';
+import { Typography, Paper, Grid, Box, Tooltip } from '@mui/material';
+
+interface Project {
+    name: string;
+    totalCost?: string;
+    paymentStatus?: string;
+    financials?: {
+        cost?: string;
+    };
+}
 
 interface FinancesProps {
     totalBudget: number;
+    financialBreakdown?: {
+        total: number;
+        inWork: number;
+        receivable: number;
+        paid: number;
+    };
+    projects?: Project[];
 }
 
-export default function Finances({ totalBudget }: FinancesProps) {
+// Parse cost string to number
+function parseCost(costStr: string | undefined): number {
+    if (!costStr) return 0;
+    if (costStr.includes('http') || costStr.match(/\d{2}\.\d{2}/)) return 0;
+    const cleanStr = costStr.replace(/р\./g, '').replace(/[^0-9,.-]/g, '').replace(',', '.');
+    const val = parseFloat(cleanStr);
+    return isNaN(val) ? 0 : val;
+}
+
+// Format number as thousands with Russian locale
+function formatAmount(value: number): string {
+    const inThousands = value / 1000;
+    return inThousands.toLocaleString('ru-RU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// Format cost for tooltip (in rubles, not thousands)
+function formatCostRub(value: number): string {
+    return value.toLocaleString('ru-RU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + ' ₽';
+}
+
+// Get payment status category
+function getPaymentCategory(paymentStatus: string | undefined): 'inWork' | 'receivable' | 'paid' {
+    const status = (paymentStatus || '').toLowerCase().trim();
+    if (status.includes('оплачено')) return 'paid';
+    if (status.includes('счет выставлен')) return 'receivable';
+    return 'inWork';
+}
+
+// Tooltip content component
+function ProjectsList({ projects, category }: { projects: Project[]; category: 'inWork' | 'receivable' | 'paid' | 'total' }) {
+    const filteredProjects = category === 'total'
+        ? projects
+        : projects.filter(p => getPaymentCategory(p.paymentStatus) === category);
+
+    if (filteredProjects.length === 0) {
+        return (
+            <Typography variant="body2" sx={{ p: 1, color: 'text.secondary' }}>
+                Нет проектов
+            </Typography>
+        );
+    }
+
+    return (
+        <Box sx={{ maxHeight: 300, overflow: 'auto', p: 1 }}>
+            {filteredProjects.map((project, idx) => {
+                const cost = parseCost(project.totalCost || project.financials?.cost);
+                return (
+                    <Box key={idx} sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        py: 0.5,
+                        borderBottom: idx < filteredProjects.length - 1 ? '1px solid rgba(255,255,255,0.1)' : 'none'
+                    }}>
+                        <Typography variant="body2" sx={{
+                            flex: 1,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: 250
+                        }}>
+                            {project.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                            {formatCostRub(cost)}
+                        </Typography>
+                    </Box>
+                );
+            })}
+        </Box>
+    );
+}
+
+export default function Finances({ totalBudget, financialBreakdown, projects = [] }: FinancesProps) {
+    const total = financialBreakdown?.total ?? totalBudget;
+    const inWork = financialBreakdown?.inWork ?? 0;
+    const receivable = financialBreakdown?.receivable ?? 0;
+    const paid = financialBreakdown?.paid ?? 0;
+
+    const tooltipProps = {
+        arrow: true,
+        placement: 'bottom' as const,
+        componentsProps: {
+            tooltip: {
+                sx: {
+                    bgcolor: 'rgba(43, 54, 116, 0.95)',
+                    '& .MuiTooltip-arrow': {
+                        color: 'rgba(43, 54, 116, 0.95)',
+                    },
+                    maxWidth: 400,
+                    minWidth: 280,
+                }
+            }
+        }
+    };
+
     return (
         <Paper sx={{ p: 2, height: '100%' }}>
             <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold">
                 Финансы, тыс. ₽
             </Typography>
 
-            <Grid container spacing={4} sx={{ mt: 1 }}>
-                <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
-                        Стоимость проектов
-                    </Typography>
-                    <Typography variant="h4" fontWeight="bold" color="primary.dark">
-                        {totalBudget.toLocaleString('ru-RU')}
-                    </Typography>
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                <Grid item xs={6} sm={3}>
+                    <Tooltip
+                        title={<ProjectsList projects={projects} category="total" />}
+                        {...tooltipProps}
+                    >
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Стоимость проектов
+                            </Typography>
+                            <Typography variant="h5" fontWeight="bold" color="primary.dark">
+                                {formatAmount(total)}
+                            </Typography>
+                        </Box>
+                    </Tooltip>
                 </Grid>
-                <Grid item xs={6}>
-                    <Typography variant="caption" color="text.secondary">
-                        Дебиторская задолженность
-                    </Typography>
-                    <Typography variant="h4" fontWeight="bold" color="primary.dark">
-                        12 000,00
-                    </Typography>
+                <Grid item xs={6} sm={3}>
+                    <Tooltip
+                        title={<ProjectsList projects={projects} category="inWork" />}
+                        {...tooltipProps}
+                    >
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
+                            <Typography variant="caption" color="text.secondary">
+                                В работе
+                            </Typography>
+                            <Typography variant="h5" fontWeight="bold" color="warning.main">
+                                {formatAmount(inWork)}
+                            </Typography>
+                        </Box>
+                    </Tooltip>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                    <Tooltip
+                        title={<ProjectsList projects={projects} category="receivable" />}
+                        {...tooltipProps}
+                    >
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Деб. задолженность
+                            </Typography>
+                            <Typography variant="h5" fontWeight="bold" color="info.main">
+                                {formatAmount(receivable)}
+                            </Typography>
+                        </Box>
+                    </Tooltip>
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                    <Tooltip
+                        title={<ProjectsList projects={projects} category="paid" />}
+                        {...tooltipProps}
+                    >
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
+                            <Typography variant="caption" color="text.secondary">
+                                Оплачено
+                            </Typography>
+                            <Typography variant="h5" fontWeight="bold" color="success.main">
+                                {formatAmount(paid)}
+                            </Typography>
+                        </Box>
+                    </Tooltip>
                 </Grid>
             </Grid>
         </Paper>
