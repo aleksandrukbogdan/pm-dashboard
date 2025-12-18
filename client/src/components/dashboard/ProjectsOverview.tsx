@@ -1,22 +1,24 @@
 import { Box, Typography, List, ListItem, ListItemText, Paper } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
 
-// Color palette for directions
+// M3 Tonal color palette for directions
 const DIRECTION_COLORS = [
-    '#5C6BC0', // Web - Indigo
-    '#7E57C2', // Mobile - Deep Purple  
-    '#AB47BC', // Design - Purple
-    '#EC407A', // Разработка ПО - Pink
-    '#26A69A', // Промышленный дизайн - Teal
+    '#6366F1', // Web - Indigo-500
+    '#8B5CF6', // Mobile - Violet-500  
+    '#A855F7', // Design - Purple-500
+    '#EC4899', // Разработка ПО - Pink-500
+    '#14B8A6', // Промышленный дизайн - Teal-500
+    '#F59E0B', // ML - Amber-500
 ];
 
-// Dimmed versions of colors
+// Dimmed versions of colors (with alpha)
 const DIRECTION_COLORS_DIMMED = [
-    '#B3BCE0', // Web - Dimmed
-    '#C7B8E0', // Mobile - Dimmed
-    '#DDB8E0', // Design - Dimmed
-    '#F5B8D0', // Разработка ПО - Dimmed
-    '#B8DDD8', // Промышленный дизайн - Dimmed
+    '#6366F140',
+    '#8B5CF640',
+    '#A855F740',
+    '#EC489940',
+    '#14B8A640',
+    '#F59E0B40',
 ];
 
 interface ProjectsOverviewProps {
@@ -70,7 +72,7 @@ export default function ProjectsOverview({
     };
 
     return (
-        <Paper sx={{ p: 2, height: '100%' }}>
+        <Paper sx={{ p: 2.5, height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
             <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold">
                 Проекты
             </Typography>
@@ -81,10 +83,10 @@ export default function ProjectsOverview({
                         series={[
                             {
                                 data,
-                                innerRadius: 60,
-                                outerRadius: 75,
-                                paddingAngle: 2,
-                                cornerRadius: 4,
+                                innerRadius: 55,
+                                outerRadius: 72,
+                                paddingAngle: 3,
+                                cornerRadius: 6,
                                 cx: 70,
                                 cy: 70,
                             },
@@ -97,6 +99,10 @@ export default function ProjectsOverview({
                             cursor: 'pointer',
                             '& .MuiPieArc-root': {
                                 cursor: 'pointer',
+                                transition: 'opacity 0.2s ease',
+                                '&:hover': {
+                                    opacity: 0.8,
+                                },
                             }
                         }}
                     />
@@ -176,7 +182,7 @@ export default function ProjectsOverview({
             </Box>
 
             {/* Footer stats */}
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', gap: 2, pt: 2, borderTop: '1px solid #eee' }}>
+            <Box sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'space-between', gap: 2, borderTop: '1px solid #eee' }}>
                 <Box>
                     <Typography variant="caption" color="text.secondary">Проекты ИТЭ-29 / НИР</Typography>
                     <Typography variant="h6" fontWeight="bold">{byCompany?.ite29 || 0} / {byCompany?.nir || 0}</Typography>

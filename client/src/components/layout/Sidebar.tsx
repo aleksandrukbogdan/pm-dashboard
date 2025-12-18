@@ -44,7 +44,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
           boxSizing: 'border-box',
           background: 'linear-gradient(180deg, #FFFFFF 0%, #F8F7FF 100%)',
           borderRight: '1px solid',
-          borderColor: alpha('#2B3674', 0.08),
+          borderColor: alpha('#ED8D48', 0.08),
         },
       }}
     >
@@ -66,8 +66,8 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
             sx={{
               width: 40,
               height: 40,
-              background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
-              boxShadow: '0 4px 14px rgba(91, 95, 227, 0.35)',
+              background: 'linear-gradient(135deg, #ED8D48 0%, #F5A86F 100%)',
+              boxShadow: '0 4px 14px rgba(237, 141, 72, 0.35)',
             }}
           >
             <LogoIcon sx={{ fontSize: 20 }} />
@@ -78,7 +78,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
             variant="subtitle1"
             sx={{
               fontWeight: 700,
-              background: 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)',
+              background: 'linear-gradient(135deg, #ED8D48 0%, #D97D3A 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -128,12 +128,12 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
                     mb: 0.5,
                     py: 1,
                     '&.Mui-selected': {
-                      background: alpha('#2B3674', 0.1),
+                      background: alpha('#ED8D48', 0.1),
                       '& .MuiListItemIcon-root': {
-                        color: '#2B3674',
+                        color: '#ED8D48',
                       },
                       '& .MuiListItemText-primary': {
-                        color: '#2B3674',
+                        color: '#ED8D48',
                         fontWeight: 600,
                       },
                     },
@@ -142,7 +142,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
                   <ListItemIcon
                     sx={{
                       minWidth: 36,
-                      color: isActive ? '#2B3674' : 'text.secondary',
+                      color: isActive ? '#ED8D48' : 'text.secondary',
                     }}
                   >
                     {item.icon}
@@ -160,7 +160,7 @@ export default function Sidebar({ drawerWidth }: SidebarProps) {
                         width: 3,
                         height: 20,
                         borderRadius: 2,
-                        background: 'linear-gradient(180deg, #2B3674 0%, #7C5CBF 100%)',
+                        background: 'linear-gradient(180deg, #ED8D48 0%, #F5A86F 100%)',
                       }}
                     />
                   )}

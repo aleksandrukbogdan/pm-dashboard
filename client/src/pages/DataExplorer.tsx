@@ -160,13 +160,13 @@ export default function DataExplorer({ spreadsheetId }: DataExplorerProps) {
                 onClick={loadSheetData}
                 disabled={loading}
                 sx={{
-                  backgroundColor: alpha('#2B3674', 0.1),
+                  backgroundColor: alpha('#ED8D48', 0.1),
                   '&:hover': {
-                    backgroundColor: alpha('#2B3674', 0.15),
+                    backgroundColor: alpha('#ED8D48', 0.15),
                   },
                 }}
               >
-                <RefreshIcon sx={{ color: '#2B3674' }} />
+                <RefreshIcon sx={{ color: '#ED8D48' }} />
               </IconButton>
             </Tooltip>
 
@@ -237,9 +237,9 @@ export default function DataExplorer({ spreadsheetId }: DataExplorerProps) {
                         key={col}
                         sx={{
                           fontWeight: 600,
-                          backgroundColor: alpha('#2B3674', 0.04),
+                          backgroundColor: alpha('#ED8D48', 0.04),
                           borderBottom: '2px solid',
-                          borderColor: alpha('#2B3674', 0.1),
+                          borderColor: alpha('#ED8D48', 0.1),
                           textTransform: 'capitalize',
                         }}
                       >

@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useDeferredValue, startTransition } from 'react';
 import { Box, Grid, CircularProgress, Alert, Chip } from '@mui/material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardService, DashboardData } from '../services/DashboardService';
 import ProjectsOverview from '../components/dashboard/ProjectsOverview';
 import Deadlines from '../components/dashboard/Deadlines';
@@ -25,6 +26,24 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
   const [statusDurations, setStatusDurations] = useState<Record<string, number | null>>({});
+
+  // Use deferred values for heavy filter computations - keeps UI responsive
+  const deferredDirection = useDeferredValue(selectedDirection);
+  const deferredStatus = useDeferredValue(selectedStatus);
+  const deferredDeadlineStatus = useDeferredValue(selectedDeadlineStatus);
+
+  // Wrapped filter handlers with startTransition for smooth animations
+  const handleDirectionChange = useCallback((direction: string | null) => {
+    startTransition(() => setSelectedDirection(direction));
+  }, []);
+
+  const handleStatusChange = useCallback((status: string | null) => {
+    startTransition(() => setSelectedStatus(status));
+  }, []);
+
+  const handleDeadlineStatusChange = useCallback((status: string | null) => {
+    startTransition(() => setSelectedDeadlineStatus(status));
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -61,28 +80,28 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
     }
   }, [spreadsheetId, selectedWeek, refreshTrigger, fetchData]);
 
-  // Filter projects based on selected direction, organization filter, and completed status
+  // Filter projects based on DEFERRED filter values for better performance
   const filteredProjects = useMemo(() => {
     if (!data) return [];
 
     let projects = data.projects;
 
-    // Filter by direction if selected
-    if (selectedDirection) {
-      projects = projects.filter(p => p.direction === selectedDirection);
+    // Filter by direction if selected (using deferred value)
+    if (deferredDirection) {
+      projects = projects.filter(p => p.direction === deferredDirection);
     }
 
-    // Filter by status if selected (case-insensitive)
-    if (selectedStatus) {
-      const lowerSelectedStatus = selectedStatus.toLowerCase().trim();
+    // Filter by status if selected (case-insensitive, using deferred value)
+    if (deferredStatus) {
+      const lowerSelectedStatus = deferredStatus.toLowerCase().trim();
       projects = projects.filter(p => (p.status?.toLowerCase().trim() || '') === lowerSelectedStatus);
     }
 
-    // Filter by deadline status if selected
-    if (selectedDeadlineStatus) {
+    // Filter by deadline status if selected (using deferred value)
+    if (deferredDeadlineStatus) {
       projects = projects.filter(p => {
         const deadlineStatus = calculateDeadlineStatus(p.endDate, p.status);
-        return deadlineStatus === selectedDeadlineStatus;
+        return deadlineStatus === deferredDeadlineStatus;
       });
     }
 
@@ -108,7 +127,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
     }
 
     return projects;
-  }, [data, selectedDirection, selectedStatus, selectedDeadlineStatus, organizationFilter, showCompleted]);
+  }, [data, deferredDirection, deferredStatus, deferredDeadlineStatus, organizationFilter, showCompleted]);
 
   // Fetch status durations for filtered projects
   useEffect(() => {
@@ -276,55 +295,93 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   return (
     <Box sx={{ flexGrow: 1 }}>
 
-      {/* Filter indicators */}
-      {(selectedDirection || selectedStatus || selectedDeadlineStatus) && (
-        <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {selectedDirection && (
-            <Chip
-              label={`Направление: ${selectedDirection}`}
-              onDelete={() => setSelectedDirection(null)}
-              color="primary"
-              size="small"
-            />
+      {/* Filter indicators with smooth layout animation */}
+      <motion.div layout transition={{ duration: 0.2, ease: 'easeOut' }}>
+        <AnimatePresence mode="popLayout">
+          {(selectedDirection || selectedStatus || selectedDeadlineStatus) && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              style={{ overflow: 'hidden', marginBottom: 12 }}
+            >
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', py: 0.5 }}>
+                <AnimatePresence mode="popLayout">
+                  {selectedDirection && (
+                    <motion.div
+                      key="direction"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Chip
+                        label={`Направление: ${selectedDirection}`}
+                        onDelete={() => handleDirectionChange(null)}
+                        color="primary"
+                        size="small"
+                      />
+                    </motion.div>
+                  )}
+                  {selectedStatus && (
+                    <motion.div
+                      key="status"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Chip
+                        label={`Статус: ${selectedStatus}`}
+                        onDelete={() => handleStatusChange(null)}
+                        color="secondary"
+                        size="small"
+                      />
+                    </motion.div>
+                  )}
+                  {selectedDeadlineStatus && (
+                    <motion.div
+                      key="deadline"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Chip
+                        label={`Срок: ${deadlineStatusToLabel(selectedDeadlineStatus)}`}
+                        onDelete={() => handleDeadlineStatusChange(null)}
+                        color="warning"
+                        size="small"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Box>
+            </motion.div>
           )}
-          {selectedStatus && (
-            <Chip
-              label={`Статус: ${selectedStatus}`}
-              onDelete={() => setSelectedStatus(null)}
-              color="secondary"
-              size="small"
-            />
-          )}
-          {selectedDeadlineStatus && (
-            <Chip
-              label={`Срок: ${deadlineStatusToLabel(selectedDeadlineStatus)}`}
-              onDelete={() => setSelectedDeadlineStatus(null)}
-              color="warning"
-              size="small"
-            />
-          )}
-        </Box>
-      )}
+        </AnimatePresence>
+      </motion.div>
 
       <Grid container spacing={3}>
         {/* Top Row: Projects & Deadlines */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} sx={{ display: 'flex' }}>
           <ProjectsOverview
             totalProjects={filteredStats.totalProjects}
             byDirection={filteredStats.byDirection}
             byType={filteredStats.byType}
             byCompany={filteredStats.byCompany}
             selectedDirection={selectedDirection}
-            onDirectionClick={setSelectedDirection}
+            onDirectionClick={handleDirectionChange}
           />
         </Grid>
         <Grid item xs={12} md={6}>
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={{ height: '100%' }}>
             <Grid item xs={12}>
               <Deadlines
                 stats={filteredStats.deadlines}
                 selectedDeadlineStatus={selectedDeadlineStatus}
-                onDeadlineClick={setSelectedDeadlineStatus}
+                onDeadlineClick={handleDeadlineStatusChange}
               />
             </Grid>
             <Grid item xs={12}>
@@ -340,7 +397,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
             showCompleted={showCompleted}
             projects={filteredProjects}
             selectedStatus={selectedStatus}
-            onStatusClick={setSelectedStatus}
+            onStatusClick={handleStatusChange}
             statusDurations={statusDurations}
           />
         </Grid>

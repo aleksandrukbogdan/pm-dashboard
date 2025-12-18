@@ -13,10 +13,11 @@ interface DeadlinesProps {
 }
 
 export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineClick }: DeadlinesProps) {
+    // M3 tonal colors
     const data = [
-        { id: 0, value: stats.onTrack, label: 'В сроках', color: '#4caf50', statusKey: 'On Track' },
-        { id: 1, value: stats.overdueSmall, label: 'Просрочка менее 2 недель', color: '#ff9800', statusKey: 'Overdue < 2 weeks' },
-        { id: 2, value: stats.overdueLarge, label: 'Просрочка более 2 недель', color: '#f44336', statusKey: 'Overdue > 2 weeks' },
+        { id: 0, value: stats.onTrack, label: 'В сроках', color: '#22C55E', statusKey: 'On Track' },
+        { id: 1, value: stats.overdueSmall, label: 'Просрочка менее 2 недель', color: '#F59E0B', statusKey: 'Overdue < 2 weeks' },
+        { id: 2, value: stats.overdueLarge, label: 'Просрочка более 2 недель', color: '#EF4444', statusKey: 'Overdue > 2 weeks' },
     ];
 
     const handleItemClick = (statusKey: string) => {
@@ -36,7 +37,7 @@ export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineCli
     };
 
     return (
-        <Paper sx={{ p: 2, height: '100%' }}>
+        <Paper sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold">
                 Сроки выполнения
             </Typography>
@@ -52,10 +53,10 @@ export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineCli
                                         ? item.color
                                         : `${item.color}40`, // Dim non-selected
                                 })),
-                                innerRadius: 50,
-                                outerRadius: 70,
-                                paddingAngle: 2,
-                                cornerRadius: 4,
+                                innerRadius: 48,
+                                outerRadius: 68,
+                                paddingAngle: 3,
+                                cornerRadius: 6,
                                 cx: 70,
                                 cy: 70,
                             },
@@ -64,6 +65,14 @@ export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineCli
                         height={150}
                         slotProps={{ legend: { hidden: true } }}
                         onItemClick={handlePieClick}
+                        sx={{
+                            '& .MuiPieArc-root': {
+                                transition: 'opacity 0.2s ease',
+                                '&:hover': {
+                                    opacity: 0.8,
+                                },
+                            }
+                        }}
                     />
                 </Box>
 

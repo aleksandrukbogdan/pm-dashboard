@@ -61,7 +61,7 @@ export default function Header({
         flexWrap: 'wrap',
         gap: 1.5,
         borderBottom: '1px solid',
-        borderColor: alpha('#2B3674', 0.08),
+        borderColor: alpha('#ED8D48', 0.08),
         background: alpha('#FFFFFF', 0.8),
         backdropFilter: 'blur(10px)',
         position: 'sticky',
@@ -113,28 +113,6 @@ export default function Header({
           onChange={handleOrganizationChange}
           aria-label="organization filter"
           size="small"
-          sx={{
-            '& .MuiToggleButton-root': {
-              px: { xs: 1, sm: 2 },
-              py: 0.5,
-              border: '1px solid',
-              borderColor: alpha('#ED8D48', 0.3),
-              color: 'text.secondary',
-              fontWeight: 500,
-              textTransform: 'none',
-              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-              '&.Mui-selected': {
-                backgroundColor: '#ED8D48',
-                color: '#fff',
-                '&:hover': {
-                  backgroundColor: '#D97D3A',
-                },
-              },
-              '&:hover': {
-                backgroundColor: alpha('#ED8D48', 0.08),
-              },
-            },
-          }}
         >
           <ToggleButton value="all">Все</ToggleButton>
           <ToggleButton value="nir">НИР</ToggleButton>
@@ -143,7 +121,7 @@ export default function Header({
       </Box>
 
       {/* Right section: Week picker + AI button */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1 } }}>
         {/* Week picker */}
         <WeekPicker
           selectedWeek={selectedWeek}
@@ -164,17 +142,18 @@ export default function Header({
               size="small"
               sx={{
                 background: aiOpen
-                  ? 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)'
-                  : alpha('#2B3674', 0.1),
-                color: aiOpen ? '#FFF' : '#2B3674',
+                  ? 'linear-gradient(135deg, #ED8D48 0%, #F5A86F 100%)'
+                  : alpha('#ED8D48', 0.1),
+                color: aiOpen ? '#FFF' : '#ED8D48',
+                boxShadow: aiOpen ? '0 4px 12px rgba(237, 141, 72, 0.35)' : 'none',
                 '&:hover': {
                   background: aiOpen
-                    ? 'linear-gradient(135deg, #4A4ED2 0%, #6B4BAE 100%)'
-                    : alpha('#2B3674', 0.15),
+                    ? 'linear-gradient(135deg, #D97D3A 0%, #ED8D48 100%)'
+                    : alpha('#ED8D48', 0.15),
                 },
               }}
             >
-              <AIIcon />
+              <AIIcon fontSize="small" />
             </IconButton>
           </motion.div>
         </Tooltip>

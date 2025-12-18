@@ -59,12 +59,15 @@ export default function TeamGrid({ teamRoles, teamMembers = [] }: TeamGridProps)
                                     display: 'flex',
                                     justifyContent: 'space-between',
                                     borderBottom: '1px solid #f0f0f0',
-                                    pb: 1,
+                                    py: 1,
+                                    px: 1,
+                                    mx: -1,
                                     cursor: 'pointer',
+                                    borderRadius: 2,
+                                    transition: 'all 0.2s ease',
                                     '&:hover': {
-                                        bgcolor: 'action.hover',
-                                        borderRadius: 1,
-                                        px: 0.5
+                                        bgcolor: 'rgba(237, 141, 72, 0.12)',
+                                        transform: 'scale(1.02)',
                                     }
                                 }}>
                                     <Typography variant="body2" color="text.primary">

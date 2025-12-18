@@ -50,9 +50,14 @@ function getPaymentCategory(paymentStatus: string | undefined): 'inWork' | 'rece
 
 // Tooltip content component
 function ProjectsList({ projects, category }: { projects: Project[]; category: 'inWork' | 'receivable' | 'paid' | 'total' }) {
-    const filteredProjects = category === 'total'
+    // Filter by category and exclude projects with 0 cost
+    const filteredProjects = (category === 'total'
         ? projects
-        : projects.filter(p => getPaymentCategory(p.paymentStatus) === category);
+        : projects.filter(p => getPaymentCategory(p.paymentStatus) === category)
+    ).filter(p => {
+        const cost = parseCost(p.totalCost || p.financials?.cost);
+        return cost > 0;
+    });
 
     if (filteredProjects.length === 0) {
         return (
@@ -106,18 +111,21 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
             tooltip: {
                 sx: {
                     bgcolor: 'rgba(43, 54, 116, 0.95)',
+                    backdropFilter: 'blur(10px)',
                     '& .MuiTooltip-arrow': {
                         color: 'rgba(43, 54, 116, 0.95)',
                     },
                     maxWidth: 400,
                     minWidth: 280,
+                    borderRadius: 2,
+                    boxShadow: '0 8px 32px rgba(43, 54, 116, 0.2)',
                 }
             }
         }
     };
 
     return (
-        <Paper sx={{ p: 2, height: '100%' }}>
+        <Paper sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold">
                 Финансы, тыс. ₽
             </Typography>
@@ -162,7 +170,7 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Деб. задолженность
                             </Typography>
-                            <Typography variant="h5" fontWeight="bold" color="info.main">
+                            <Typography variant="h5" fontWeight="bold" color="#14B8A6">
                                 {formatAmount(receivable)}
                             </Typography>
                         </Box>

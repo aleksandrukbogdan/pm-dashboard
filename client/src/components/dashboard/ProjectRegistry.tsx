@@ -2,33 +2,37 @@ import { useState } from 'react';
 import {
     Paper,
     Typography,
+    Box,
+    Link,
+    Tooltip,
+    Chip,
+    alpha,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Box,
-    Collapse,
-    IconButton,
     Checkbox,
     FormControlLabel,
-    Link,
-    Tooltip,
-    Chip,
-    alpha,
 } from '@mui/material';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import {
+    ExpandMore as ExpandMoreIcon,
+    FolderOpen as FolderIcon,
+} from '@mui/icons-material';
 
 // Status colors for project stages
 const STATUS_COLORS: Record<string, string> = {
     'Не начат': '#9e9e9e',
     'пауза': '#e6c258',
     'Пауза': '#e6c258',
+    'Исследование': '#A78BFA',
     'Пилот': '#FF94DB',
-    'В разработке менее 50%': '#9982FF',
-    'В разработке более 50%': '#7B61FF',
+    'В разработке менее 50%': '#DCD4FF',
+    'В разработке более 50%': '#9982FF',
     'Завершающий этап разработки': '#00A8F0',
     'Готов': '#05CD99',
     'На поддержке': '#6FD439',
@@ -69,6 +73,9 @@ function getStatusColor(status: string): string {
     if (statusLower.includes('пилот')) {
         return STATUS_COLORS['Пилот'];
     }
+    if (statusLower.includes('исследование')) {
+        return STATUS_COLORS['Исследование'];
+    }
 
     return '#9e9e9e'; // Default gray
 }
@@ -86,12 +93,13 @@ function StatusChip({ status }: { status: string }) {
             sx={{
                 backgroundColor: alpha(color, 0.15),
                 color: color,
-                border: `1px solid ${color}`,
+                border: `1px solid ${alpha(color, 0.3)}`,
                 fontWeight: 500,
-                fontSize: '0.75rem',
-                height: 24,
+                fontSize: '0.7rem',
+                height: 22,
+                borderRadius: 2,
                 '& .MuiChip-label': {
-                    px: 1.5,
+                    px: 1,
                 },
             }}
         />
@@ -168,7 +176,19 @@ function renderLink(url: string, label?: string) {
     if (!url) return '-';
     if (url.startsWith('http://') || url.startsWith('https://')) {
         return (
-            <Link href={url} target="_blank" rel="noopener noreferrer" sx={{ wordBreak: 'break-all' }}>
+            <Link
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                    color: '#ED8D48',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                    '&:hover': {
+                        textDecoration: 'underline',
+                    }
+                }}
+            >
                 {label || 'Ссылка'}
             </Link>
         );
@@ -182,109 +202,204 @@ function formatTeamMembers(team: TeamMember[], field: 'name' | 'role' | 'employm
     const values = team.map(m => m[field] || '-');
     if (values.every(v => v === '-' || v === '')) return '-';
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
             {values.map((val, idx) => (
-                <Box key={idx} sx={{ whiteSpace: 'nowrap' }}>{val || '-'}</Box>
+                <Typography key={idx} variant="caption" sx={{ whiteSpace: 'nowrap' }}>{val || '-'}</Typography>
             ))}
         </Box>
     );
 }
 
-function Row({ direction, projects }: { direction: string, projects: Project[] }) {
-    const [open, setOpen] = useState(true);
+// Direction card colors - matched from ProjectsOverview
+const DIRECTION_COLORS: Record<string, string> = {
+    'Web': '#6366F1',              // Indigo-500
+    'Mobile': '#8B5CF6',           // Violet-500
+    'Design': '#A855F7',           // Purple-500
+    'Разработка ПО': '#EC4899',    // Pink-500
+    'Промышленный дизайн': '#14B8A6', // Teal-500
+    'ML': '#F59E0B',               // Amber-500
+};
+
+function DirectionAccordion({ direction, projects }: { direction: string, projects: Project[] }) {
+    const [expanded, setExpanded] = useState(false);
+
+    const dirColor = DIRECTION_COLORS[direction] || '#ED8D48';
 
     const columnHeaders = [
-        { label: 'Наименование', minWidth: 200 },
-        { label: 'Начало', minWidth: 100 },
-        { label: 'Завершение', minWidth: 100 },
-        { label: 'Тип проекта', minWidth: 120 },
-        { label: 'Этап проекта', minWidth: 150 },
-        { label: 'Заказчик', minWidth: 150 },
-        { label: 'Контакты заказчика', minWidth: 180 },
-        { label: 'Цель проекта', minWidth: 200 },
-        { label: 'Ожидаемый результат', minWidth: 200 },
-        { label: 'Стек', minWidth: 150 },
-        { label: 'Ссылка на проект', minWidth: 120 },
-        { label: 'Ссылка на результат', minWidth: 120 },
-        { label: 'Расчет стоимости', minWidth: 120 },
-        { label: 'КП', minWidth: 100 },
-        { label: 'Команда ФИО', minWidth: 200 },
-        { label: 'Роль в проекте', minWidth: 150 },
-        { label: 'Трудоустройство', minWidth: 150 },
-        { label: 'Комментарий', minWidth: 200 },
+        { label: 'Проект', minWidth: 180 },
+        { label: 'Статус', minWidth: 140 },
+        { label: 'Даты', minWidth: 100 },
+        { label: 'Тип', minWidth: 100 },
+        { label: 'Заказчик', minWidth: 120 },
+        { label: 'Цель', minWidth: 180 },
+        { label: 'Стек', minWidth: 120 },
+        { label: 'Ссылки', minWidth: 100 },
+        { label: 'Команда', minWidth: 150 },
+        { label: 'Роль', minWidth: 120 },
     ];
 
-    const totalWidth = columnHeaders.reduce((sum, col) => sum + col.minWidth, 0);
-
     return (
-        <>
-            <TableRow sx={{ '& > *': { borderBottom: 'unset' }, bgcolor: '#f5f5f5' }}>
-                <TableCell colSpan={columnHeaders.length} component="th" scope="row">
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <IconButton
-                            aria-label="expand row"
-                            size="small"
-                            onClick={() => setOpen(!open)}
-                        >
-                            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                        </IconButton>
-                        <Typography variant="subtitle1" fontWeight="bold" component="div" sx={{ ml: 1 }}>
-                            {direction} ({projects.length})
+        <Accordion
+            expanded={expanded}
+            onChange={() => setExpanded(!expanded)}
+            disableGutters
+            elevation={0}
+            sx={{
+                '&:before': { display: 'none' },
+                bgcolor: 'transparent',
+                border: '1px solid',
+                borderColor: alpha(dirColor, 0.2),
+                borderRadius: '16px !important',
+                mb: 1.5,
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                    borderColor: alpha(dirColor, 0.4),
+                    boxShadow: `0 4px 20px ${alpha(dirColor, 0.15)}`,
+                },
+            }}
+        >
+            <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: dirColor }} />}
+                sx={{
+                    minHeight: 56,
+                    px: 2.5,
+                    bgcolor: alpha(dirColor, 0.04),
+                    '&:hover': {
+                        bgcolor: alpha(dirColor, 0.08),
+                    },
+                    '& .MuiAccordionSummary-content': {
+                        my: 1.5,
+                    },
+                }}
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                    <Box
+                        sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 3,
+                            bgcolor: alpha(dirColor, 0.12),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
+                        <FolderIcon sx={{ color: dirColor, fontSize: 22 }} />
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                        <Typography variant="subtitle1" fontWeight={600} color="text.primary">
+                            {direction}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                            {projects.length} проект{projects.length === 1 ? '' : projects.length < 5 ? 'а' : 'ов'}
                         </Typography>
                     </Box>
-                </TableCell>
-            </TableRow>
-            <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={columnHeaders.length}>
-                    <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ margin: 1, overflowX: 'auto' }}>
-                            <Table size="small" aria-label="projects" sx={{ minWidth: totalWidth }}>
-                                <TableHead>
-                                    <TableRow>
-                                        {columnHeaders.map((col) => (
-                                            <TableCell
-                                                key={col.label}
-                                                sx={{ fontWeight: 'bold', minWidth: col.minWidth, whiteSpace: 'nowrap' }}
-                                            >
-                                                {col.label}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {projects.map((project, idx) => (
-                                        <TableRow key={`${project.name}-${idx}`}>
-                                            <TableCell component="th" scope="row" sx={{ minWidth: 200 }}>
-                                                <Tooltip title={project.name} arrow>
-                                                    <span>{project.name || '-'}</span>
-                                                </Tooltip>
-                                            </TableCell>
-                                            <TableCell sx={{ minWidth: 100 }}>{project.startDate || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 100 }}>{project.endDate || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 120 }}>{project.type || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><StatusChip status={project.status} /></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}>{project.customer || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 180 }}>{project.customerContacts || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 200, maxWidth: 300 }}>{project.goal || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 200, maxWidth: 300 }}>{project.expectedResult || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}>{project.stack || '-'}</TableCell>
-                                            <TableCell sx={{ minWidth: 120 }}>{renderLink(project.projectLink)}</TableCell>
-                                            <TableCell sx={{ minWidth: 120 }}>{renderLink(project.resultLink)}</TableCell>
-                                            <TableCell sx={{ minWidth: 120 }}>{renderLink(project.financials?.cost)}</TableCell>
-                                            <TableCell sx={{ minWidth: 100 }}>{renderLink(project.financials?.kp)}</TableCell>
-                                            <TableCell sx={{ minWidth: 200 }}>{formatTeamMembers(project.team, 'name')}</TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}>{formatTeamMembers(project.team, 'role')}</TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}>{formatTeamMembers(project.team, 'employment')}</TableCell>
-                                            <TableCell sx={{ minWidth: 200 }}>{project.comment || '-'}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </Box>
-                    </Collapse>
-                </TableCell>
-            </TableRow>
-        </>
+                    <Chip
+                        label={projects.length}
+                        size="small"
+                        sx={{
+                            bgcolor: dirColor,
+                            color: 'white',
+                            fontWeight: 600,
+                            minWidth: 32,
+                        }}
+                    />
+                </Box>
+            </AccordionSummary>
+            <AccordionDetails sx={{ p: 0 }}>
+                <TableContainer sx={{ maxHeight: 400 }}>
+                    <Table size="small" stickyHeader>
+                        <TableHead>
+                            <TableRow>
+                                {columnHeaders.map((col) => (
+                                    <TableCell
+                                        key={col.label}
+                                        sx={{
+                                            fontWeight: 600,
+                                            fontSize: '0.75rem',
+                                            color: 'text.secondary',
+                                            bgcolor: '#FAFAFF',
+                                            minWidth: col.minWidth,
+                                            whiteSpace: 'nowrap',
+                                            borderBottom: `1px solid ${alpha(dirColor, 0.1)}`,
+                                        }}
+                                    >
+                                        {col.label}
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {projects.map((project, idx) => (
+                                <TableRow
+                                    key={`${project.name}-${idx}`}
+                                    sx={{
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            bgcolor: alpha(dirColor, 0.04),
+                                        },
+                                        '&:last-child td': {
+                                            borderBottom: 0,
+                                        },
+                                    }}
+                                >
+                                    <TableCell sx={{ py: 1.5 }}>
+                                        <Tooltip title={project.goal || project.name} placement="top">
+                                            <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 180 }}>
+                                                {project.name || '-'}
+                                            </Typography>
+                                        </Tooltip>
+                                    </TableCell>
+                                    <TableCell><StatusChip status={project.status} /></TableCell>
+                                    <TableCell>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {project.startDate || '-'} → {project.endDate || '-'}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="caption">{project.type || '-'}</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="caption" noWrap sx={{ maxWidth: 120 }}>
+                                            {project.customer || '-'}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="caption" sx={{
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            maxWidth: 180,
+                                        }}>
+                                            {project.goal || '-'}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="caption" noWrap sx={{ maxWidth: 120 }}>
+                                            {project.stack || '-'}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            {project.projectLink && renderLink(project.projectLink, '📁')}
+                                            {project.resultLink && renderLink(project.resultLink, '📊')}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell>
+                                        {formatTeamMembers(project.team, 'name')}
+                                    </TableCell>
+                                    <TableCell>
+                                        {formatTeamMembers(project.team, 'role')}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </AccordionDetails>
+        </Accordion>
     );
 }
 
@@ -306,12 +421,30 @@ export default function ProjectRegistry({ projects }: ProjectRegistryProps) {
         return acc;
     }, {} as Record<string, Project[]>);
 
+    // Sort directions by project count (descending)
+    const sortedDirections = Object.entries(groupedProjects)
+        .sort((a, b) => b[1].length - a[1].length);
+
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden', mt: 4, p: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h5" color="primary.main" fontWeight="bold">
-                    Реестр проектов
-                </Typography>
+        <Paper
+            sx={{
+                width: '100%',
+                overflow: 'hidden',
+                mt: 4,
+                p: 3,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(250,250,255,0.95) 100%)',
+            }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Box>
+                    <Typography variant="h5" color="primary.main" fontWeight="bold">
+                        Реестр проектов
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                        {filteredProjects.length} проектов в {sortedDirections.length} направлениях
+                    </Typography>
+                </Box>
                 <FormControlLabel
                     control={
                         <Checkbox
@@ -332,15 +465,16 @@ export default function ProjectRegistry({ projects }: ProjectRegistryProps) {
                     }
                 />
             </Box>
-            <TableContainer sx={{ maxHeight: 600 }}>
-                <Table stickyHeader aria-label="collapsible table">
-                    <TableBody>
-                        {Object.entries(groupedProjects).map(([direction, dirProjects]) => (
-                            <Row key={direction} direction={direction} projects={dirProjects} />
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                {sortedDirections.map(([direction, dirProjects]) => (
+                    <DirectionAccordion
+                        key={direction}
+                        direction={direction}
+                        projects={dirProjects}
+                    />
+                ))}
+            </Box>
         </Paper>
     );
 }
