@@ -1,4 +1,5 @@
 import { Typography, Paper, Grid, Box, Tooltip } from '@mui/material';
+import ChangeIndicator from './ChangeIndicator';
 
 interface Project {
     name: string;
@@ -18,6 +19,12 @@ interface FinancesProps {
         paid: number;
     };
     projects?: Project[];
+    changes?: {
+        total: number;
+        inWork: number;
+        receivable: number;
+        paid: number;
+    };
 }
 
 // Parse cost string to number
@@ -98,7 +105,7 @@ function ProjectsList({ projects, category }: { projects: Project[]; category: '
     );
 }
 
-export default function Finances({ totalBudget, financialBreakdown, projects = [] }: FinancesProps) {
+export default function Finances({ totalBudget, financialBreakdown, projects = [], changes }: FinancesProps) {
     const total = financialBreakdown?.total ?? totalBudget;
     const inWork = financialBreakdown?.inWork ?? 0;
     const receivable = financialBreakdown?.receivable ?? 0;
@@ -140,9 +147,14 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Стоимость проектов
                             </Typography>
-                            <Typography variant="h5" fontWeight="bold" color="primary.dark">
-                                {formatAmount(total)}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="h5" fontWeight="bold" color="primary.dark">
+                                    {formatAmount(total)}
+                                </Typography>
+                                {changes?.total !== undefined && changes.total !== 0 && (
+                                    <ChangeIndicator change={changes.total} size="small" format="currency" />
+                                )}
+                            </Box>
                         </Box>
                     </Tooltip>
                 </Grid>
@@ -155,9 +167,14 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 В работе
                             </Typography>
-                            <Typography variant="h5" fontWeight="bold" color="warning.main">
-                                {formatAmount(inWork)}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="h5" fontWeight="bold" color="warning.main">
+                                    {formatAmount(inWork)}
+                                </Typography>
+                                {changes?.inWork !== undefined && changes.inWork !== 0 && (
+                                    <ChangeIndicator change={changes.inWork} size="small" format="currency" />
+                                )}
+                            </Box>
                         </Box>
                     </Tooltip>
                 </Grid>
@@ -170,9 +187,14 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Деб. задолженность
                             </Typography>
-                            <Typography variant="h5" fontWeight="bold" color="#14B8A6">
-                                {formatAmount(receivable)}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="h5" fontWeight="bold" color="#14B8A6">
+                                    {formatAmount(receivable)}
+                                </Typography>
+                                {changes?.receivable !== undefined && changes.receivable !== 0 && (
+                                    <ChangeIndicator change={changes.receivable} size="small" format="currency" />
+                                )}
+                            </Box>
                         </Box>
                     </Tooltip>
                 </Grid>
@@ -185,9 +207,14 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Оплачено
                             </Typography>
-                            <Typography variant="h5" fontWeight="bold" color="success.main">
-                                {formatAmount(paid)}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Typography variant="h5" fontWeight="bold" color="success.main">
+                                    {formatAmount(paid)}
+                                </Typography>
+                                {changes?.paid !== undefined && changes.paid !== 0 && (
+                                    <ChangeIndicator change={changes.paid} size="small" format="currency" />
+                                )}
+                            </Box>
                         </Box>
                     </Tooltip>
                 </Grid>

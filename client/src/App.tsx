@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 const SPREADSHEET_ID = '1wqIvBBVGWFAlqYD42yYLm859h6uCWGBnCkUq5rv0ZeQ';
 
 export type OrganizationFilter = 'all' | 'nir' | 'ite29';
+export type ComparisonMode = 'none' | 'previousDay' | 'weekAgo';
 
 function App() {
   const [aiOpen, setAiOpen] = useState(false);
@@ -18,6 +19,7 @@ function App() {
   const [showCompleted, setShowCompleted] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [comparisonMode, setComparisonMode] = useState<ComparisonMode>('none');
 
   const handleDataRefresh = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);
@@ -35,6 +37,8 @@ function App() {
         selectedWeek={selectedWeek}
         onSelectedWeekChange={setSelectedWeek}
         onDataRefresh={handleDataRefresh}
+        comparisonMode={comparisonMode}
+        onComparisonModeChange={setComparisonMode}
       />
 
       <Box
@@ -56,6 +60,7 @@ function App() {
                 showCompleted={showCompleted}
                 selectedWeek={selectedWeek}
                 refreshTrigger={refreshTrigger}
+                comparisonMode={comparisonMode}
               />
             }
           />

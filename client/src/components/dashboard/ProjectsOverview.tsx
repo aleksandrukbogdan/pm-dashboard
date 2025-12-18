@@ -1,5 +1,6 @@
 import { Box, Typography, List, ListItem, ListItemText, Paper } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
+import ChangeIndicator from './ChangeIndicator';
 
 // M3 Tonal color palette for directions
 const DIRECTION_COLORS = [
@@ -28,6 +29,19 @@ interface ProjectsOverviewProps {
     byCompany?: { ite29: number; nir: number };
     selectedDirection?: string | null;
     onDirectionClick?: (direction: string | null) => void;
+    changes?: {
+        total: number;
+        byDirection: Record<string, number>;
+        byType?: {
+            internal: number;
+            commercial: number;
+            free: number;
+        };
+        byCompany?: {
+            ite29: number;
+            nir: number;
+        };
+    };
 }
 
 export default function ProjectsOverview({
@@ -36,7 +50,8 @@ export default function ProjectsOverview({
     byType,
     byCompany,
     selectedDirection,
-    onDirectionClick
+    onDirectionClick,
+    changes
 }: ProjectsOverviewProps) {
     const directions = Object.keys(byDirection);
 
@@ -119,9 +134,14 @@ export default function ProjectsOverview({
                             '&:hover': { opacity: 0.8 }
                         }}
                     >
-                        <Typography variant="h4" fontWeight="bold">
-                            {totalProjects}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                            <Typography variant="h4" fontWeight="bold">
+                                {totalProjects}
+                            </Typography>
+                            {changes?.total !== undefined && changes.total !== 0 && (
+                                <ChangeIndicator change={changes.total} size="small" />
+                            )}
+                        </Box>
                         <Typography variant="caption" color="text.secondary">
                             {selectedDirection ? 'Фильтр' : 'Всего'}
                         </Typography>
@@ -174,7 +194,12 @@ export default function ProjectsOverview({
                                     }}
                                 />
                                 <ListItemText primary={direction} primaryTypographyProps={{ variant: 'body2' }} />
-                                <Typography variant="body2" fontWeight="bold">{count}</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Typography variant="body2" fontWeight="bold">{count}</Typography>
+                                    {changes?.byDirection?.[direction] !== undefined && changes.byDirection[direction] !== 0 && (
+                                        <ChangeIndicator change={changes.byDirection[direction]} size="small" showValue={true} />
+                                    )}
+                                </Box>
                             </ListItem>
                         );
                     })}
@@ -185,19 +210,44 @@ export default function ProjectsOverview({
             <Box sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'space-between', gap: 2, borderTop: '1px solid #eee' }}>
                 <Box>
                     <Typography variant="caption" color="text.secondary">Проекты ИТЭ-29 / НИР</Typography>
-                    <Typography variant="h6" fontWeight="bold">{byCompany?.ite29 || 0} / {byCompany?.nir || 0}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="h6" fontWeight="bold">{byCompany?.ite29 || 0}</Typography>
+                        {changes?.byCompany?.ite29 !== undefined && changes.byCompany.ite29 !== 0 && (
+                            <ChangeIndicator change={changes.byCompany.ite29} size="small" />
+                        )}
+                        <Typography variant="h6" fontWeight="bold">/</Typography>
+                        <Typography variant="h6" fontWeight="bold">{byCompany?.nir || 0}</Typography>
+                        {changes?.byCompany?.nir !== undefined && changes.byCompany.nir !== 0 && (
+                            <ChangeIndicator change={changes.byCompany.nir} size="small" />
+                        )}
+                    </Box>
                 </Box>
                 <Box>
                     <Typography variant="caption" color="text.secondary">Внутренние</Typography>
-                    <Typography variant="h6" fontWeight="bold">{byType?.internal || 0}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="h6" fontWeight="bold">{byType?.internal || 0}</Typography>
+                        {changes?.byType?.internal !== undefined && changes.byType.internal !== 0 && (
+                            <ChangeIndicator change={changes.byType.internal} size="small" />
+                        )}
+                    </Box>
                 </Box>
                 <Box>
                     <Typography variant="caption" color="text.secondary">Коммерческие</Typography>
-                    <Typography variant="h6" fontWeight="bold">{byType?.commercial || 0}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="h6" fontWeight="bold">{byType?.commercial || 0}</Typography>
+                        {changes?.byType?.commercial !== undefined && changes.byType.commercial !== 0 && (
+                            <ChangeIndicator change={changes.byType.commercial} size="small" />
+                        )}
+                    </Box>
                 </Box>
                 <Box>
                     <Typography variant="caption" color="text.secondary">Безоплатные</Typography>
-                    <Typography variant="h6" fontWeight="bold">{byType?.free || 0}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="h6" fontWeight="bold">{byType?.free || 0}</Typography>
+                        {changes?.byType?.free !== undefined && changes.byType.free !== 0 && (
+                            <ChangeIndicator change={changes.byType.free} size="small" />
+                        )}
+                    </Box>
                 </Box>
             </Box>
         </Paper>

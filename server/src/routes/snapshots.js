@@ -7,6 +7,8 @@ import {
     getStatusDurations,
     deleteSnapshot
 } from '../services/snapshotService.js';
+import { getComparisonData } from '../services/snapshotsCompare.js';
+import { getDashboardData } from '../services/dashboardService.js';
 import { createImmediateSnapshot, SPREADSHEET_ID } from '../services/scheduler.js';
 
 const router = express.Router();
@@ -91,6 +93,31 @@ router.post('/status-durations', async (req, res) => {
     } catch (error) {
         console.error('Error getting status durations:', error);
         res.status(500).json({ error: 'Failed to get status durations' });
+    }
+});
+
+/**
+ * GET /api/snapshots/compare/:comparisonType
+ * Get comparison data between current and historical snapshot
+ * comparisonType: 'previousDay' or 'weekAgo'
+ */
+router.get('/compare/:comparisonType', async (req, res) => {
+    try {
+        const { comparisonType } = req.params;
+
+        if (comparisonType !== 'previousDay' && comparisonType !== 'weekAgo') {
+            return res.status(400).json({ error: 'Invalid comparison type. Use "previousDay" or "weekAgo"' });
+        }
+
+        // Get current live data
+        const currentData = await getDashboardData(SPREADSHEET_ID);
+
+        // Get comparison data
+        const comparison = await getComparisonData(currentData, comparisonType);
+        res.json(comparison);
+    } catch (error) {
+        console.error('Error getting comparison data:', error);
+        res.status(500).json({ error: 'Failed to get comparison data' });
     }
 });
 

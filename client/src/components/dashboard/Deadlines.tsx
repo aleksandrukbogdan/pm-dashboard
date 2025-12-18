@@ -1,5 +1,6 @@
 import { Box, Typography, List, ListItem, ListItemText, Paper } from '@mui/material';
 import { PieChart } from '@mui/x-charts/PieChart';
+import ChangeIndicator from './ChangeIndicator';
 
 interface DeadlinesProps {
     stats: {
@@ -10,9 +11,15 @@ interface DeadlinesProps {
     };
     selectedDeadlineStatus?: string | null;
     onDeadlineClick?: (status: string | null) => void;
+    changes?: {
+        onTrack: number;
+        overdueSmall: number;
+        overdueLarge: number;
+        completed: number;
+    };
 }
 
-export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineClick }: DeadlinesProps) {
+export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineClick, changes }: DeadlinesProps) {
     // M3 tonal colors
     const data = [
         { id: 0, value: stats.onTrack, label: 'В сроках', color: '#22C55E', statusKey: 'On Track' },
@@ -109,7 +116,15 @@ export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineCli
                             >
                                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: item.color, mr: 1 }} />
                                 <ListItemText primary={item.label} primaryTypographyProps={{ variant: 'body2' }} />
-                                <Typography variant="body2" fontWeight="bold">{item.value}</Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Typography variant="body2" fontWeight="bold">{item.value}</Typography>
+                                    {changes && (() => {
+                                        const changeKey = item.statusKey === 'On Track' ? 'onTrack' :
+                                            item.statusKey === 'Overdue < 2 weeks' ? 'overdueSmall' : 'overdueLarge';
+                                        const change = changes[changeKey as keyof typeof changes];
+                                        return change !== 0 ? <ChangeIndicator change={change} size="small" showValue={true} /> : null;
+                                    })()}
+                                </Box>
                             </ListItem>
                         );
                     })}

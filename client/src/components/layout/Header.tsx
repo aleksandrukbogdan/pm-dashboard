@@ -13,7 +13,7 @@ import {
   AutoAwesome as AIIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { OrganizationFilter } from '../../App';
+import { OrganizationFilter, ComparisonMode } from '../../App';
 import WeekPicker from '../dashboard/WeekPicker';
 
 interface HeaderProps {
@@ -26,6 +26,8 @@ interface HeaderProps {
   selectedWeek: string | null;
   onSelectedWeekChange: (week: string | null) => void;
   onDataRefresh?: () => void;
+  comparisonMode: ComparisonMode;
+  onComparisonModeChange: (mode: ComparisonMode) => void;
 }
 
 export default function Header({
@@ -38,6 +40,8 @@ export default function Header({
   selectedWeek,
   onSelectedWeekChange,
   onDataRefresh,
+  comparisonMode,
+  onComparisonModeChange,
 }: HeaderProps) {
   const handleOrganizationChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -45,6 +49,15 @@ export default function Header({
   ) => {
     if (newFilter !== null) {
       onOrganizationFilterChange(newFilter);
+    }
+  };
+
+  const handleComparisonChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newMode: ComparisonMode | null,
+  ) => {
+    if (newMode !== null) {
+      onComparisonModeChange(newMode);
     }
   };
 
@@ -118,6 +131,21 @@ export default function Header({
           <ToggleButton value="nir">НИР</ToggleButton>
           <ToggleButton value="ite29">ИТЭ-29</ToggleButton>
         </ToggleButtonGroup>
+
+        {/* Comparison mode toggle - hide when viewing historical data */}
+        {!selectedWeek && (
+          <ToggleButtonGroup
+            value={comparisonMode}
+            exclusive
+            onChange={handleComparisonChange}
+            aria-label="comparison mode"
+            size="small"
+          >
+            <ToggleButton value="none">Сравн: Выкл</ToggleButton>
+            <ToggleButton value="previousDay">Вчера</ToggleButton>
+            <ToggleButton value="weekAgo">Неделя</ToggleButton>
+          </ToggleButtonGroup>
+        )}
       </Box>
 
       {/* Right section: Week picker + AI button */}

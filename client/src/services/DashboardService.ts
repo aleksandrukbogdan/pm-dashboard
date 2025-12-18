@@ -60,6 +60,40 @@ export interface ProjectHistoryEntry {
     snapshot: any;
 }
 
+export interface ComparisonData {
+    available: boolean;
+    comparisonType: 'previousDay' | 'weekAgo';
+    comparisonDate: string;
+    message?: string;
+    changes?: {
+        projects: {
+            total: number;
+            byDirection: Record<string, number>;
+            byType?: {
+                internal: number;
+                commercial: number;
+                free: number;
+            };
+            byCompany?: {
+                ite29: number;
+                nir: number;
+            };
+        };
+        finances: {
+            total: number;
+            inWork: number;
+            receivable: number;
+            paid: number;
+        };
+        deadlines: {
+            onTrack: number;
+            overdueSmall: number;
+            overdueLarge: number;
+            completed: number;
+        };
+    };
+}
+
 export const DashboardService = {
     async getDashboardData(spreadsheetId: string): Promise<DashboardData> {
         const response = await axios.get(`${API_URL}/dashboard/${spreadsheetId}`);
@@ -93,6 +127,11 @@ export const DashboardService = {
 
     async deleteSnapshot(weekStart: string): Promise<{ success: boolean; weekStart: string }> {
         const response = await axios.delete(`${API_URL}/snapshots/${weekStart}`);
+        return response.data;
+    },
+
+    async getComparisonData(comparisonType: 'previousDay' | 'weekAgo'): Promise<ComparisonData> {
+        const response = await axios.get(`${API_URL}/snapshots/compare/${comparisonType}`);
         return response.data;
     }
 };

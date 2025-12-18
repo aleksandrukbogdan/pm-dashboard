@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo, useCallback, useDeferredValue, startTransition } from 'react';
 import { Box, Grid, CircularProgress, Alert, Chip } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DashboardService, DashboardData } from '../services/DashboardService';
+import { DashboardService, DashboardData, ComparisonData } from '../services/DashboardService';
 import ProjectsOverview from '../components/dashboard/ProjectsOverview';
 import Deadlines from '../components/dashboard/Deadlines';
 import Finances from '../components/dashboard/Finances';
 import StatusChart from '../components/dashboard/StatusChart';
 import TeamGrid from '../components/dashboard/TeamGrid';
 import ProjectRegistry from '../components/dashboard/ProjectRegistry';
-import { OrganizationFilter } from '../App';
+import { OrganizationFilter, ComparisonMode } from '../App';
 
 interface DashboardProps {
   spreadsheetId: string;
@@ -16,9 +16,10 @@ interface DashboardProps {
   showCompleted: boolean;
   selectedWeek: string | null;
   refreshTrigger?: number;
+  comparisonMode: ComparisonMode;
 }
 
-export default function Dashboard({ spreadsheetId, organizationFilter, showCompleted, selectedWeek, refreshTrigger }: DashboardProps) {
+export default function Dashboard({ spreadsheetId, organizationFilter, showCompleted, selectedWeek, refreshTrigger, comparisonMode }: DashboardProps) {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +27,8 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
   const [statusDurations, setStatusDurations] = useState<Record<string, number | null>>({});
+  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
 
   // Use deferred values for heavy filter computations - keeps UI responsive
   const deferredDirection = useDeferredValue(selectedDirection);
@@ -79,6 +82,29 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       fetchData();
     }
   }, [spreadsheetId, selectedWeek, refreshTrigger, fetchData]);
+
+  // Fetch comparison data when mode changes
+  useEffect(() => {
+    const fetchComparison = async () => {
+      if (comparisonMode === 'none' || selectedWeek) {
+        setComparisonData(null);
+        return;
+      }
+
+      setComparisonLoading(true);
+      try {
+        const data = await DashboardService.getComparisonData(comparisonMode);
+        setComparisonData(data);
+      } catch (err) {
+        console.error('Failed to fetch comparison data:', err);
+        setComparisonData(null);
+      } finally {
+        setComparisonLoading(false);
+      }
+    };
+
+    fetchComparison();
+  }, [comparisonMode, selectedWeek]);
 
   // Filter projects based on DEFERRED filter values for better performance
   const filteredProjects = useMemo(() => {
@@ -373,6 +399,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
             byCompany={filteredStats.byCompany}
             selectedDirection={selectedDirection}
             onDirectionClick={handleDirectionChange}
+            changes={comparisonData?.available ? comparisonData.changes?.projects : undefined}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -382,10 +409,16 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
                 stats={filteredStats.deadlines}
                 selectedDeadlineStatus={selectedDeadlineStatus}
                 onDeadlineClick={handleDeadlineStatusChange}
+                changes={comparisonData?.available ? comparisonData.changes?.deadlines : undefined}
               />
             </Grid>
             <Grid item xs={12}>
-              <Finances totalBudget={filteredStats.totalBudget} financialBreakdown={filteredStats.financialBreakdown} projects={filteredProjects} />
+              <Finances
+                totalBudget={filteredStats.totalBudget}
+                financialBreakdown={filteredStats.financialBreakdown}
+                projects={filteredProjects}
+                changes={comparisonData?.available ? comparisonData.changes?.finances : undefined}
+              />
             </Grid>
           </Grid>
         </Grid>
