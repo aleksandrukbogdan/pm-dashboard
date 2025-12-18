@@ -319,7 +319,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
                       <Chip
                         label={`Направление: ${selectedDirection}`}
                         onDelete={() => handleDirectionChange(null)}
-                        color="primary"
+                        color="warning"
                         size="small"
                       />
                     </motion.div>
@@ -335,7 +335,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
                       <Chip
                         label={`Статус: ${selectedStatus}`}
                         onDelete={() => handleStatusChange(null)}
-                        color="secondary"
+                        color="warning"
                         size="small"
                       />
                     </motion.div>

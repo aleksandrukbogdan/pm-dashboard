@@ -271,7 +271,7 @@ export default function WeekPicker({ selectedWeek, onWeekChange, onDataRefresh, 
                         paper: {
                             sx: {
                                 mt: 1,
-                                borderRadius: 4,
+                                borderRadius: 2,
                                 minWidth: 320,
                                 maxHeight: 400,
                                 overflow: 'hidden',
