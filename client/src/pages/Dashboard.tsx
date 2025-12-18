@@ -28,7 +28,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
   const [statusDurations, setStatusDurations] = useState<Record<string, number | null>>({});
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
-  const [comparisonLoading, setComparisonLoading] = useState(false);
+
 
   // Use deferred values for heavy filter computations - keeps UI responsive
   const deferredDirection = useDeferredValue(selectedDirection);
@@ -91,15 +91,12 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
         return;
       }
 
-      setComparisonLoading(true);
       try {
         const data = await DashboardService.getComparisonData(comparisonMode);
         setComparisonData(data);
       } catch (err) {
         console.error('Failed to fetch comparison data:', err);
         setComparisonData(null);
-      } finally {
-        setComparisonLoading(false);
       }
     };
 
