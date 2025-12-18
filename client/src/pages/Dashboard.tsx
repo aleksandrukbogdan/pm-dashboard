@@ -367,14 +367,21 @@ function calculateDeadlineStatus(endDateStr: string, status: string): string {
   const endDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
   if (isNaN(endDate.getTime())) return 'Invalid Date';
 
-  const now = new Date();
-  const diffTime = now.getTime() - endDate.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
   const statusLower = status?.toLowerCase() || '';
+
+  // Completed projects
   if (statusLower.includes('завершен') || statusLower.includes('на поддержке') || statusLower.includes('готов')) {
     return 'Completed';
   }
+
+  // Exclude Pilot and Pause statuses from deadline calculations
+  if (statusLower.includes('пилот') || statusLower.includes('пауза')) {
+    return 'Excluded';
+  }
+
+  const now = new Date();
+  const diffTime = now.getTime() - endDate.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   if (diffDays <= 0) {
     return 'On Track';

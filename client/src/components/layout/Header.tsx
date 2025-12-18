@@ -52,11 +52,14 @@ export default function Header({
     <Box
       component="header"
       sx={{
-        height: 72,
-        px: 3,
+        minHeight: 72,
+        px: { xs: 1.5, sm: 2, md: 3 },
+        py: 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 1.5,
         borderBottom: '1px solid',
         borderColor: alpha('#2B3674', 0.08),
         background: alpha('#FFFFFF', 0.8),
@@ -75,17 +78,18 @@ export default function Header({
         />
       </Box>
 
-      {/* Spacer to push filters to the right */}
-      <Box sx={{ flex: 1 }} />
+      {/* Spacer to push filters to the right - hidden on small screens */}
+      <Box sx={{ flex: 1, display: { xs: 'none', md: 'block' } }} />
 
       {/* Right section: Filters */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2, md: 4 }, flexWrap: 'wrap' }}>
         {/* Completed checkbox */}
         <FormControlLabel
           control={
             <Checkbox
               checked={showCompleted}
               onChange={(e) => onShowCompletedChange(e.target.checked)}
+              size="small"
               sx={{
                 color: alpha('#ED8D48', 0.4),
                 '&.Mui-checked': {
@@ -95,10 +99,11 @@ export default function Header({
             />
           }
           label={
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, display: { xs: 'none', sm: 'block' } }}>
               Отображать завершённые
             </Typography>
           }
+          sx={{ mr: 0 }}
         />
 
         {/* Organization toggle buttons */}
@@ -110,13 +115,14 @@ export default function Header({
           size="small"
           sx={{
             '& .MuiToggleButton-root': {
-              px: 2,
+              px: { xs: 1, sm: 2 },
               py: 0.5,
               border: '1px solid',
               borderColor: alpha('#ED8D48', 0.3),
               color: 'text.secondary',
               fontWeight: 500,
               textTransform: 'none',
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
               '&.Mui-selected': {
                 backgroundColor: '#ED8D48',
                 color: '#fff',
@@ -137,7 +143,7 @@ export default function Header({
       </Box>
 
       {/* Right section: Week picker + AI button */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, ml: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
         {/* Week picker */}
         <WeekPicker
           selectedWeek={selectedWeek}
@@ -155,6 +161,7 @@ export default function Header({
           >
             <IconButton
               onClick={onAIToggle}
+              size="small"
               sx={{
                 background: aiOpen
                   ? 'linear-gradient(135deg, #2B3674 0%, #7C5CBF 100%)'

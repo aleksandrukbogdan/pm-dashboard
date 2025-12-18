@@ -30,11 +30,9 @@ export async function getDashboardData(spreadsheetId) {
 
       // Normalize rows with fill-down logic
       const normalizedRows = rows.map(row => {
-        // Find dynamic status column (starts with _этап_проекта_на_ or just _этап_проекта)
-        const statusKey = Object.keys(row).find(k =>
-          k.startsWith('_этап_проекта_на_') || k === '_этап_проекта'
-        );
-        const status = statusKey ? row[statusKey] : '';
+        // Find dynamic status column (any column starting with _этап_проекта)
+        const statusKey = Object.keys(row).find(k => k.startsWith('_этап_проекта'));
+        const status = statusKey ? (row[statusKey] || '').trim() : '';
 
         const name = row['наименование_проекта'];
 

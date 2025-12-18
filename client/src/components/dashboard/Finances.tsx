@@ -29,21 +29,15 @@ function parseCost(costStr: string | undefined): number {
     return isNaN(val) ? 0 : val;
 }
 
-// Format number as thousands with Russian locale
+// Format number as thousands with Russian locale (no decimals)
 function formatAmount(value: number): string {
-    const inThousands = value / 1000;
-    return inThousands.toLocaleString('ru-RU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+    const inThousands = Math.round(value / 1000);
+    return inThousands.toLocaleString('ru-RU');
 }
 
-// Format cost for tooltip (in rubles, not thousands)
+// Format cost for tooltip (in rubles, not thousands, no decimals)
 function formatCostRub(value: number): string {
-    return value.toLocaleString('ru-RU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }) + ' ₽';
+    return Math.round(value).toLocaleString('ru-RU') + ' ₽';
 }
 
 // Get payment status category
@@ -129,13 +123,13 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
             </Typography>
 
             <Grid container spacing={2} sx={{ mt: 0.5 }}>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} lg={3}>
                     <Tooltip
                         title={<ProjectsList projects={projects} category="total" />}
                         {...tooltipProps}
                     >
-                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                            <Typography variant="caption" color="text.secondary">
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 }, height: '100%' }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Стоимость проектов
                             </Typography>
                             <Typography variant="h5" fontWeight="bold" color="primary.dark">
@@ -144,13 +138,13 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                         </Box>
                     </Tooltip>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} lg={3}>
                     <Tooltip
                         title={<ProjectsList projects={projects} category="inWork" />}
                         {...tooltipProps}
                     >
-                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                            <Typography variant="caption" color="text.secondary">
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 }, height: '100%' }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 В работе
                             </Typography>
                             <Typography variant="h5" fontWeight="bold" color="warning.main">
@@ -159,13 +153,13 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                         </Box>
                     </Tooltip>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} lg={3}>
                     <Tooltip
                         title={<ProjectsList projects={projects} category="receivable" />}
                         {...tooltipProps}
                     >
-                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                            <Typography variant="caption" color="text.secondary">
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 }, height: '100%' }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Деб. задолженность
                             </Typography>
                             <Typography variant="h5" fontWeight="bold" color="info.main">
@@ -174,13 +168,13 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
                         </Box>
                     </Tooltip>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid item xs={6} lg={3}>
                     <Tooltip
                         title={<ProjectsList projects={projects} category="paid" />}
                         {...tooltipProps}
                     >
-                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 } }}>
-                            <Typography variant="caption" color="text.secondary">
+                        <Box sx={{ cursor: 'pointer', '&:hover': { opacity: 0.8 }, height: '100%' }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', minHeight: 32, lineHeight: 1.3 }}>
                                 Оплачено
                             </Typography>
                             <Typography variant="h5" fontWeight="bold" color="success.main">
