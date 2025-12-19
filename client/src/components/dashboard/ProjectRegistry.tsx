@@ -136,6 +136,7 @@ interface Project {
 
 interface ProjectRegistryProps {
     projects: Project[];
+    showFlatList?: boolean;
 }
 
 // Helper function to calculate deadline status
@@ -403,7 +404,7 @@ function DirectionAccordion({ direction, projects }: { direction: string, projec
     );
 }
 
-export default function ProjectRegistry({ projects }: ProjectRegistryProps) {
+export default function ProjectRegistry({ projects, showFlatList = false }: ProjectRegistryProps) {
     const [showOverdue, setShowOverdue] = useState(true);
 
     // Filter projects based on overdue checkbox
@@ -467,13 +468,115 @@ export default function ProjectRegistry({ projects }: ProjectRegistryProps) {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                {sortedDirections.map(([direction, dirProjects]) => (
-                    <DirectionAccordion
-                        key={direction}
-                        direction={direction}
-                        projects={dirProjects}
-                    />
-                ))}
+                {showFlatList ? (
+                    /* Flat list view when deadline filter is active */
+                    <TableContainer sx={{ maxHeight: 600 }}>
+                        <Table size="small" stickyHeader>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 180 }}>Проект</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Направление</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 140 }}>Статус</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Даты</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Тип</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 120 }}>Заказчик</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 180 }}>Цель</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 120 }}>Стек</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Ссылки</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 150 }}>Команда</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 120 }}>Роль</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredProjects.map((project, idx) => {
+                                    const dirColor = DIRECTION_COLORS[project.direction] || '#ED8D48';
+                                    return (
+                                        <TableRow
+                                            key={`${project.name}-${idx}`}
+                                            sx={{
+                                                transition: 'all 0.2s ease',
+                                                '&:hover': {
+                                                    bgcolor: alpha(dirColor, 0.04),
+                                                },
+                                            }}
+                                        >
+                                            <TableCell sx={{ py: 1.5 }}>
+                                                <Tooltip title={project.goal || project.name} placement="top">
+                                                    <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 180 }}>
+                                                        {project.name || '-'}
+                                                    </Typography>
+                                                </Tooltip>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={project.direction || 'Другое'}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: alpha(dirColor, 0.12),
+                                                        color: dirColor,
+                                                        fontWeight: 500,
+                                                        fontSize: '0.7rem',
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell><StatusChip status={project.status} /></TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {project.startDate || '-'} → {project.endDate || '-'}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption">{project.type || '-'}</Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption" noWrap sx={{ maxWidth: 120 }}>
+                                                    {project.customer || '-'}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption" sx={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    maxWidth: 180,
+                                                }}>
+                                                    {project.goal || '-'}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Typography variant="caption" noWrap sx={{ maxWidth: 120 }}>
+                                                    {project.stack || '-'}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    {project.projectLink && renderLink(project.projectLink, '📁')}
+                                                    {project.resultLink && renderLink(project.resultLink, '📊')}
+                                                </Box>
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatTeamMembers(project.team, 'name')}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatTeamMembers(project.team, 'role')}
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                ) : (
+                    /* Grouped view by directions */
+                    sortedDirections.map(([direction, dirProjects]) => (
+                        <DirectionAccordion
+                            key={direction}
+                            direction={direction}
+                            projects={dirProjects}
+                        />
+                    ))
+                )}
             </Box>
         </Paper>
     );

@@ -437,7 +437,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
         {/* Project Registry */}
         <Grid item xs={12}>
-          <ProjectRegistry projects={filteredProjects} />
+          <ProjectRegistry projects={filteredProjects} showFlatList={!!selectedDeadlineStatus} />
         </Grid>
       </Grid>
     </Box>
