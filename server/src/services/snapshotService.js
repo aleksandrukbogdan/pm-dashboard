@@ -216,8 +216,13 @@ export async function calculateStatusDuration(projectKey) {
 
     const changedAt = new Date(history.status_changed_at);
     const now = new Date();
-    const diffMs = now - changedAt;
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Calculate calendar days difference (not full 24-hour periods)
+    // This means: changed yesterday = 1 day, changed 2 days ago = 2 days, etc.
+    const changedAtDate = new Date(changedAt.getFullYear(), changedAt.getMonth(), changedAt.getDate());
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffMs = nowDate - changedAtDate;
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
     return diffDays;
 }
