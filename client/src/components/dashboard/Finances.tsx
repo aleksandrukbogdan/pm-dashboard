@@ -36,10 +36,9 @@ function parseCost(costStr: string | undefined): number {
     return isNaN(val) ? 0 : val;
 }
 
-// Format number as thousands with Russian locale (no decimals)
+// Format number with Russian locale (no decimals)
 function formatAmount(value: number): string {
-    const inThousands = Math.round(value / 1000);
-    return inThousands.toLocaleString('ru-RU');
+    return Math.round(value).toLocaleString('ru-RU');
 }
 
 // Format cost for tooltip (in rubles, not thousands, no decimals)
@@ -134,7 +133,7 @@ export default function Finances({ totalBudget, financialBreakdown, projects = [
     return (
         <Paper sx={{ p: 2.5, height: '100%' }}>
             <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold">
-                Финансы, тыс. ₽
+                Финансы, ₽
             </Typography>
 
             <Grid container spacing={2} sx={{ mt: 0.5 }}>

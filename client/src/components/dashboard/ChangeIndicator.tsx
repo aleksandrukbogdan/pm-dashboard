@@ -29,9 +29,8 @@ export default function ChangeIndicator({
     const formatChange = (value: number): string => {
         const absValue = Math.abs(value);
         if (format === 'currency') {
-            // For currency, show in thousands
-            const inThousands = Math.round(absValue / 1000);
-            return inThousands.toLocaleString('ru-RU');
+            // For currency, show in rubles
+            return Math.round(absValue).toLocaleString('ru-RU');
         }
         return absValue.toString();
     };
