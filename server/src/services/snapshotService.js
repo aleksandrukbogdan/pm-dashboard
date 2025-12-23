@@ -228,14 +228,51 @@ export async function calculateStatusDuration(projectKey) {
 }
 
 /**
- * Get status durations for multiple projects
+ * Get status durations for multiple projects - OPTIMIZED
+ * Uses a single SQL query instead of N separate queries
  */
 export async function getStatusDurations(projectKeys) {
-    const durations = {};
-
-    for (const key of projectKeys) {
-        durations[key] = await calculateStatusDuration(key);
+    if (!projectKeys || projectKeys.length === 0) {
+        return {};
     }
+
+    // Build query with placeholders for all keys
+    const placeholders = projectKeys.map(() => '?').join(', ');
+
+    // Get latest status_changed_at for each project in a single query
+    // Using subquery to get the latest record per project_key
+    const { rows } = await db.execute({
+        sql: `SELECT project_key, status_changed_at 
+              FROM project_history 
+              WHERE project_key IN (${placeholders})
+              AND week_start = (
+                  SELECT MAX(week_start) 
+                  FROM project_history ph2 
+                  WHERE ph2.project_key = project_history.project_key
+              )`,
+        args: projectKeys
+    });
+
+    // Calculate durations for each project
+    const durations = {};
+    const now = new Date();
+    const nowDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Initialize all keys with null
+    projectKeys.forEach(key => {
+        durations[key] = null;
+    });
+
+    // Fill in actual durations from query results
+    rows.forEach(row => {
+        if (row.status_changed_at) {
+            const changedAt = new Date(row.status_changed_at);
+            const changedAtDate = new Date(changedAt.getFullYear(), changedAt.getMonth(), changedAt.getDate());
+            const diffMs = nowDate - changedAtDate;
+            const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            durations[row.project_key] = diffDays;
+        }
+    });
 
     return durations;
 }

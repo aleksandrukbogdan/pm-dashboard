@@ -84,6 +84,8 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   }, [spreadsheetId, selectedWeek, refreshTrigger, fetchData]);
 
   // Fetch comparison data when mode changes
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+
   useEffect(() => {
     const fetchComparison = async () => {
       if (comparisonMode === 'none' || selectedWeek) {
@@ -91,12 +93,17 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
         return;
       }
 
+      // Don't clear previous data - show loading indicator instead
+      setComparisonLoading(true);
+
       try {
         const data = await DashboardService.getComparisonData(comparisonMode);
         setComparisonData(data);
       } catch (err) {
         console.error('Failed to fetch comparison data:', err);
         setComparisonData(null);
+      } finally {
+        setComparisonLoading(false);
       }
     };
 
@@ -316,7 +323,58 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   }
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
+    <Box sx={{ flexGrow: 1, position: 'relative' }}>
+
+      {/* Comparison loading indicator - Material 3 style */}
+      <AnimatePresence mode="wait">
+        {comparisonLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98 }}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
+              damping: 30,
+              mass: 0.8
+            }}
+            style={{ marginBottom: 12 }}
+          >
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 1.5,
+                px: 2,
+                py: 1,
+                borderRadius: '12px',
+                backgroundColor: 'rgba(103, 80, 164, 0.08)',
+                border: '1px solid rgba(103, 80, 164, 0.2)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <CircularProgress
+                size={16}
+                thickness={3}
+                sx={{
+                  color: 'primary.main',
+                }}
+              />
+              <Box
+                component="span"
+                sx={{
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  color: 'primary.main',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                Загрузка сравнения
+              </Box>
+            </Box>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Filter indicators with smooth layout animation */}
       <motion.div layout transition={{ duration: 0.2, ease: 'easeOut' }}>

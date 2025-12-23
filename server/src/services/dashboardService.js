@@ -1,4 +1,7 @@
 import { getSheetDataAsObjects } from './googleSheets.js';
+import cache, { DEFAULT_TTL } from './cache.js';
+
+const CACHE_KEY = 'dashboard_data';
 
 const SHEET_MAPPINGS = [
   { name: 'Проекты WEB', direction: 'Web', headerRowIndex: 1 },
@@ -18,7 +21,17 @@ function normalizeName(name) {
   return parts.slice(0, 2).join(' ');
 }
 
-export async function getDashboardData(spreadsheetId) {
+export async function getDashboardData(spreadsheetId, forceRefresh = false) {
+  // Check cache first (unless force refresh requested)
+  const cacheKey = `${CACHE_KEY}_${spreadsheetId}`;
+  if (!forceRefresh) {
+    const cached = cache.get(cacheKey);
+    if (cached) {
+      console.log('Dashboard data served from cache');
+      return cached;
+    }
+  }
+
   try {
     const allProjects = [];
 
@@ -161,11 +174,26 @@ export async function getDashboardData(spreadsheetId) {
       byCompany: calculateByCompany(allProjects)
     };
 
-    return { summary, charts, projects };
+    const result = { summary, charts, projects };
+
+    // Store in cache
+    cache.set(cacheKey, result, DEFAULT_TTL);
+    console.log('Dashboard data cached');
+
+    return result;
   } catch (error) {
     console.error('Error in getDashboardData:', error);
     throw error;
   }
+}
+
+/**
+ * Invalidate dashboard cache (useful for force refresh)
+ */
+export function invalidateDashboardCache(spreadsheetId) {
+  const cacheKey = `${CACHE_KEY}_${spreadsheetId}`;
+  cache.delete(cacheKey);
+  console.log('Dashboard cache invalidated');
 }
 
 function parseCost(costStr) {
