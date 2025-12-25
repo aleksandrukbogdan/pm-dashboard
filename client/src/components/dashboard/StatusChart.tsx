@@ -119,7 +119,7 @@ export default function StatusChart({
     };
 
     return (
-        <Paper sx={{ p: 2.5, height: '100%' }}>
+        <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 300 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
                 <Typography variant="h6" color="primary.main" fontWeight="bold">
                     Проекты по статусам
@@ -135,7 +135,7 @@ export default function StatusChart({
                 </ToggleButtonGroup>
             </Box>
 
-            <Box sx={{ width: '100%', height: 280, position: 'relative' }}>
+            <Box sx={{ width: '100%', flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
                 {/* Custom bar chart with labels and tooltips */}
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -150,10 +150,12 @@ export default function StatusChart({
                             display: 'flex',
                             justifyContent: 'space-around',
                             alignItems: 'flex-end',
-                            height: 200,
+                            flex: 1,
                             width: '100%',
                             paddingLeft: 8,
                             paddingRight: 8,
+                            paddingBottom: '8px', // Space for X-axis baseline
+                            minHeight: 100, // Ensure some minimum height
                         }}
                     >
                         {orderedStatuses.map((status, index) => {
@@ -161,7 +163,7 @@ export default function StatusChart({
                             const maxValue = viewMode === 'count'
                                 ? Math.max(...data, 1)
                                 : Math.max(...timeData, 1);
-                            const barHeight = (value / maxValue) * 160;
+                            const barHeight = `${(value / maxValue) * 100}%`;
                             const color = colors[index];
                             const isSelected = !selectedStatus || selectedStatus === status;
 
@@ -186,6 +188,7 @@ export default function StatusChart({
                                         cursor: 'pointer',
                                         opacity: isSelected ? 1 : 0.4,
                                         transition: 'opacity 0.3s ease',
+                                        height: '100%',
                                     }}
                                     whileHover={{ y: -4, opacity: 1 }}
                                 >
@@ -210,7 +213,7 @@ export default function StatusChart({
                                         arrow
                                         placement="top"
                                     >
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
                                             {/* Value label above bar */}
                                             <Typography
                                                 variant="body2"

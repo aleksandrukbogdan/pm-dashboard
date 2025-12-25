@@ -6,7 +6,7 @@ const CACHE_KEY = 'dashboard_data';
 const SHEET_MAPPINGS = [
   { name: 'Проекты WEB', direction: 'Web', headerRowIndex: 1 },
   { name: 'Проекты mobile', direction: 'Mobile', headerRowIndex: 0 },
-  { name: 'Design (графический)', direction: 'Design', headerRowIndex: 0 },
+  { name: 'Дизайн (графический)', direction: 'Design', headerRowIndex: 0 },
   { name: 'Проекты разработка ПО', direction: 'Разработка ПО', headerRowIndex: 0 },
   { name: 'Проекты пром дизайн', direction: 'Промышленный дизайн', headerRowIndex: 0 },
   { name: 'Проекты ML', direction: 'ML', headerRowIndex: 0 },

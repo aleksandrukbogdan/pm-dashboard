@@ -25,7 +25,7 @@ export default function TeamGrid({ teamRoles, teamMembers = [] }: TeamGridProps)
     });
 
     return (
-        <Paper sx={{ p: 2, height: '100%' }}>
+        <Paper sx={{ p: 2, height: '100%', minHeight: 300 }}>
             <Typography variant="h6" gutterBottom color="primary.main" fontWeight="bold">
                 Команда, чел. →
             </Typography>
