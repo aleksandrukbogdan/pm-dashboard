@@ -12,6 +12,9 @@ const SHEET_MAPPINGS = [
   { name: 'Проекты ML', direction: 'ML', headerRowIndex: 0 },
 ];
 
+// Team sheet with ФИО and Должность columns
+const TEAM_SHEET = { name: 'Команда', headerRowIndex: 0 };
+
 // Helper function to normalize name:
 // - Replace ё with е (Алёна = Алена)
 // - Take only first 2 words (Surname + FirstName)
@@ -33,6 +36,22 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
   }
 
   try {
+    // Load team mapping: ФИО → Должность from "Команда" sheet
+    let teamPositionMap = {};
+    try {
+      const teamSheetRows = await getSheetDataAsObjects(spreadsheetId, TEAM_SHEET.name, TEAM_SHEET.headerRowIndex);
+      teamSheetRows.forEach(row => {
+        const name = normalizeName(row['фио'] || '');
+        const position = (row['должность'] || '').trim();
+        if (name && position) {
+          teamPositionMap[name] = position;
+        }
+      });
+      console.log(`Loaded ${Object.keys(teamPositionMap).length} team members from Команда sheet`);
+    } catch (teamError) {
+      console.warn('Could not load Команда sheet, falling back to Роль в проекте:', teamError.message);
+    }
+
     const allProjects = [];
 
     // Fetch data from all sheets
@@ -133,7 +152,7 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
           if (!exists && normalizedName) {
             groupedProjects[key].team.push({
               name: normalizedName,
-              role: p.teamMemberRole,
+              role: teamPositionMap[normalizedName] || p.teamMemberRole || '',
               employment: p.teamMemberEmployment || p.executor
             });
           }
@@ -169,7 +188,7 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
       byDirection: calculateByDirection(projects),
       deadlines: calculateDeadlines(projects),
       byStatus: calculateByStatus(projects),
-      teamRoles: calculateTeamRoles(allProjects),
+      teamRoles: calculateTeamRoles(allProjects, teamPositionMap),
       byType: calculateByType(projects),
       byCompany: calculateByCompany(allProjects)
     };
@@ -315,24 +334,26 @@ function calculateByStatus(projects) {
   return stats;
 }
 
-function calculateTeamRoles(allRows) {
+function calculateTeamRoles(allRows, teamPositionMap = {}) {
   const stats = {};
   const seenMembers = new Set();
 
   allRows.forEach(row => {
-    if (row.teamMemberName && row.teamMemberRole) {
-      const role = row.teamMemberRole.trim();
-
+    if (row.teamMemberName) {
       // Split comma-separated names (e.g., "Ткаченко Олеся, Алимов Дамир")
       const names = row.teamMemberName.split(',').map(n => n.trim()).filter(n => n);
 
       names.forEach(fullName => {
         const normalizedName = normalizeName(fullName);
-        const memberKey = `${normalizedName}|${role}`;
+        // Use position from Команда sheet, fallback to Роль в проекте
+        const role = teamPositionMap[normalizedName] || (row.teamMemberRole || '').trim();
 
-        if (!seenMembers.has(memberKey) && normalizedName) {
-          stats[role] = (stats[role] || 0) + 1;
-          seenMembers.add(memberKey);
+        if (role && normalizedName) {
+          const memberKey = `${normalizedName}|${role}`;
+          if (!seenMembers.has(memberKey)) {
+            stats[role] = (stats[role] || 0) + 1;
+            seenMembers.add(memberKey);
+          }
         }
       });
     }

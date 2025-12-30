@@ -119,7 +119,7 @@ export default function StatusChart({
     };
 
     return (
-        <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 300 }}>
+        <Paper sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 300, transition: 'height 0.1s ease-out' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
                 <Typography variant="h6" color="primary.main" fontWeight="bold">
                     Проекты по статусам
