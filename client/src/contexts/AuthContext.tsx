@@ -17,7 +17,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 
 interface AuthProviderProps {
     children: ReactNode;
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
 
             try {
-                const response = await fetch(`${API_URL}/api/auth/verify`, {
+                const response = await fetch('/api/auth/verify', {
                     headers: {
                         'Authorization': `Bearer ${storedToken}`
                     }
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, []);
 
     const login = async (username: string, password: string) => {
-        const response = await fetch(`${API_URL}/api/auth/login`, {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
