@@ -268,7 +268,7 @@ export default function Settings() {
                 PM Dashboard v1.0.0
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                © 2024 • Material Design 3 • React + TypeScript
+                © 2026 • Material Design 3 • React + TypeScript
               </Typography>
             </Box>
           </Box>

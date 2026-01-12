@@ -36,40 +36,35 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
   }
 
   try {
-    // Start data fetches with controlled concurrency to avoid network timeouts
+    // Start data fetches sequentially with a delay to completely avoid network timeouts
     const start = Date.now();
     console.log('Starting dashboard data fetch...');
 
-    // Function to run tasks with concurrency limit
-    async function fetchWithConcurrency(items, limit, fn) {
-      const results = [];
-      const chunks = [];
-      for (let i = 0; i < items.length; i += limit) {
-        chunks.push(items.slice(i, i + limit));
-      }
+    // Helper to sleep
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-      for (const chunk of chunks) {
-        const chunkResults = await Promise.all(chunk.map(item => fn(item)));
-        results.push(...chunkResults);
-      }
-      return results;
-    }
-
-    // 1. Fetch Team sheet first (it's critical for mapping roles)
-    // We fetch it separately to ensure we don't bombard the auth endpoint initially
+    // 1. Fetch Team sheet first
     let teamSheetRows = [];
     try {
       teamSheetRows = await getSheetDataAsObjects(spreadsheetId, TEAM_SHEET.name, TEAM_SHEET.headerRowIndex);
     } catch (teamError) {
       console.warn('Could not load Команда sheet, falling back to Роль в проекте:', teamError.message);
     }
+    
+    // 2. Fetch Project sheets sequentially with delay
+    const projectSheetResults = [];
+    for (const mapping of SHEET_MAPPINGS) {
+      try {
+        // Add a small delay between requests to avoid overwhelming the connection/auth flow
+        if (projectSheetResults.length > 0) await delay(500);
 
-    // 2. Fetch Project sheets with concurrency limit
-    const CONCURRENCY_LIMIT = 3;
-    const projectSheetResults = await fetchWithConcurrency(SHEET_MAPPINGS, CONCURRENCY_LIMIT, async (mapping) => {
-      const rows = await getSheetDataAsObjects(spreadsheetId, mapping.name, mapping.headerRowIndex);
-      return { mapping, rows };
-    });
+        const rows = await getSheetDataAsObjects(spreadsheetId, mapping.name, mapping.headerRowIndex);
+        projectSheetResults.push({ mapping, rows });
+      } catch (err) {
+        console.error(`Error fetching sheet ${mapping.name}:`, err.message);
+        // Continue to other sheets even if one fails
+      }
+    }
 
     console.log(`Data fetch completed in ${(Date.now() - start) / 1000}s`);
 

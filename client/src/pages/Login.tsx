@@ -12,7 +12,7 @@ import {
     IconButton,
     CircularProgress
 } from '@mui/material';
-import { Visibility, VisibilityOff, Login as LoginIcon } from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
 interface LocationState {
@@ -74,9 +74,11 @@ export default function Login() {
             >
                 <CardContent sx={{ p: 4 }}>
                     <Box sx={{ textAlign: 'center', mb: 4 }}>
-                        <LoginIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                            <img src="/logo.svg" alt="Logo" style={{ width: 256, height: 100 }} />
+                        </Box>
                         <Typography variant="h4" component="h1" gutterBottom fontWeight={600}>
-                            PM Dashboard
+                            Дэшборд проектов
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                             Введите данные для входа
