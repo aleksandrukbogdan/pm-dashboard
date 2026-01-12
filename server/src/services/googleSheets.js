@@ -15,7 +15,15 @@ let credentials;
 
 if (process.env.GOOGLE_CREDENTIALS) {
   // Production: credentials from environment variable
-  credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+  // Support both plain JSON and Base64 encoded
+  const credStr = process.env.GOOGLE_CREDENTIALS;
+  try {
+    // Try parsing as plain JSON first
+    credentials = JSON.parse(credStr);
+  } catch {
+    // If that fails, try Base64 decoding
+    credentials = JSON.parse(Buffer.from(credStr, 'base64').toString('utf8'));
+  }
 } else {
   // Development: credentials from local file
   const credentialsPath = path.join(__dirname, '../../../nir-center-dashboard-31d551f58f41.json');
