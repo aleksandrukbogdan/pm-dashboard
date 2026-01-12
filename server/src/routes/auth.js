@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import db from '../services/db.js';
+import { logActivity } from '../services/activityLogger.js';
 
 const router = express.Router();
 
@@ -44,6 +45,15 @@ router.post('/login', async (req, res) => {
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
+
+        // Log successful login
+        await logActivity({
+            userId: user.id,
+            username: user.username,
+            userName: user.name,
+            action: 'login',
+            ipAddress: req.ip || req.connection?.remoteAddress
+        });
 
         res.json({
             token,

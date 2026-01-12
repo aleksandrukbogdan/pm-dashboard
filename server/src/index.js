@@ -7,7 +7,9 @@ import sheetsRoutes from './routes/sheets.js';
 import dashboardRoutes from './routes/dashboard.js';
 import snapshotsRoutes from './routes/snapshots.js';
 import authRoutes from './routes/auth.js';
+import logsRoutes from './routes/logs.js';
 import { authMiddleware } from './middleware/authMiddleware.js';
+import activityLogger from './middleware/activityLogger.js';
 import { initScheduler } from './services/scheduler.js';
 import { initDatabase } from './services/db.js';
 import { seedUsers } from './services/seedUsers.js';
@@ -32,10 +34,11 @@ if (process.env.NODE_ENV === 'production') {
 // Auth routes (public)
 app.use('/api/auth', authRoutes);
 
-// Protected API Routes
-app.use('/api/sheets', authMiddleware, sheetsRoutes);
-app.use('/api/dashboard', authMiddleware, dashboardRoutes);
-app.use('/api/snapshots', authMiddleware, snapshotsRoutes);
+// Protected API Routes with activity logging
+app.use('/api/sheets', authMiddleware, activityLogger('view_sheets'), sheetsRoutes);
+app.use('/api/dashboard', authMiddleware, activityLogger('view_dashboard'), dashboardRoutes);
+app.use('/api/snapshots', authMiddleware, activityLogger('view_snapshots'), snapshotsRoutes);
+app.use('/api/logs', authMiddleware, logsRoutes);
 
 // Health check (public)
 app.get('/api/health', (req, res) => {

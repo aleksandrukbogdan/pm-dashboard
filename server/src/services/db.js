@@ -60,6 +60,23 @@ export async function initDatabase() {
     `);
     await db.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
 
+    // Create activity_logs table for tracking user actions
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        username TEXT NOT NULL,
+        user_name TEXT NOT NULL,
+        action TEXT NOT NULL,
+        details TEXT,
+        ip_address TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_logs_user ON activity_logs(user_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_logs_created ON activity_logs(created_at)');
+
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Database initialization error:', error);
