@@ -36,28 +36,44 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
   }
 
   try {
-    // Load team mapping: ФИО → Должность from "Команда" sheet
-    let teamPositionMap = {};
-    try {
-      const teamSheetRows = await getSheetDataAsObjects(spreadsheetId, TEAM_SHEET.name, TEAM_SHEET.headerRowIndex);
-      teamSheetRows.forEach(row => {
-        const name = normalizeName(row['фио'] || '');
-        const position = (row['должность'] || '').trim();
-        if (name && position) {
-          teamPositionMap[name] = position;
-        }
+    // Start all data fetches in parallel
+    const start = Date.now();
+    console.log('Starting dashboard data fetch...');
+
+    const teamSheetPromise = getSheetDataAsObjects(spreadsheetId, TEAM_SHEET.name, TEAM_SHEET.headerRowIndex)
+      .catch(err => {
+        console.warn('Could not load Команда sheet, falling back to Роль в проекте:', err.message);
+        return [];
       });
-      console.log(`Loaded ${Object.keys(teamPositionMap).length} team members from Команда sheet`);
-    } catch (teamError) {
-      console.warn('Could not load Команда sheet, falling back to Роль в проекте:', teamError.message);
-    }
+
+    const projectSheetsPromises = SHEET_MAPPINGS.map(mapping =>
+      getSheetDataAsObjects(spreadsheetId, mapping.name, mapping.headerRowIndex)
+        .then(rows => ({ mapping, rows }))
+    );
+
+    // Wait for all requests to complete
+    const [teamSheetRows, ...projectSheetResults] = await Promise.all([
+      teamSheetPromise,
+      ...projectSheetsPromises
+    ]);
+
+    console.log(`Data fetch completed in ${(Date.now() - start) / 1000}s`);
+
+    // Process Team Data
+    let teamPositionMap = {};
+    teamSheetRows.forEach(row => {
+      const name = normalizeName(row['фио'] || '');
+      const position = (row['должность'] || '').trim();
+      if (name && position) {
+        teamPositionMap[name] = position;
+      }
+    });
+    console.log(`Loaded ${Object.keys(teamPositionMap).length} team members from Команда sheet`);
 
     const allProjects = [];
 
-    // Fetch data from all sheets
-    for (const mapping of SHEET_MAPPINGS) {
-      const rows = await getSheetDataAsObjects(spreadsheetId, mapping.name, mapping.headerRowIndex);
-
+    // Process Project Data
+    for (const { mapping, rows } of projectSheetResults) {
       let lastProject = null;
 
       // Normalize rows with fill-down logic
