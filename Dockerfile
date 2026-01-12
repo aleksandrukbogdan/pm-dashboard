@@ -30,9 +30,6 @@ RUN npm ci --only=production
 # Copy server source code
 COPY server/src ./src
 
-# Copy Google Sheets credentials file
-COPY nir-center-dashboard-31d551f58f41.json ./
-
 # Copy built frontend from stage 1
 COPY --from=frontend-builder /app/client/dist ./public
 
