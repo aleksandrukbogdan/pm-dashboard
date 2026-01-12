@@ -3,6 +3,27 @@ import axios from 'axios';
 // Use relative path - works with Vite proxy in dev and Vercel rewrites in prod
 const API_URL = '/api';
 
+// Add auth token to all requests
+axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Handle 401 responses - redirect to login
+axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
 export interface DashboardData {
     summary: {
         totalProjects: number;

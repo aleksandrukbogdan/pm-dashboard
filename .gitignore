@@ -39,6 +39,7 @@ coverage/
 *.local
 
 nir-center-dashboard-31d551f58f41.json
+gitik.txt
 
 # Database
 server/data/

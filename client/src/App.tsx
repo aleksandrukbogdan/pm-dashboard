@@ -2,10 +2,13 @@ import { useState, useCallback } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box } from '@mui/material';
 
+import { AuthProvider } from './contexts/AuthContext';
+import { PrivateRoute } from './components/auth/PrivateRoute';
 import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
 import DataExplorer from './pages/DataExplorer';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
 
 
 const SPREADSHEET_ID = '1wqIvBBVGWFAlqYD42yYLm859h6uCWGBnCkUq5rv0ZeQ';
@@ -13,7 +16,7 @@ const SPREADSHEET_ID = '1wqIvBBVGWFAlqYD42yYLm859h6uCWGBnCkUq5rv0ZeQ';
 export type OrganizationFilter = 'all' | 'nir' | 'ite29';
 export type ComparisonMode = 'none' | 'previousDay' | 'weekAgo';
 
-function App() {
+function AppContent() {
   const [aiOpen, setAiOpen] = useState(false);
   const [organizationFilter, setOrganizationFilter] = useState<OrganizationFilter>('all');
   const [showCompleted, setShowCompleted] = useState(true);
@@ -75,5 +78,24 @@ function App() {
   );
 }
 
+function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/*"
+          element={
+            <PrivateRoute>
+              <AppContent />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </AuthProvider>
+  );
+}
+
 export default App;
+
 

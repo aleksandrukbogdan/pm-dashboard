@@ -8,13 +8,16 @@ import {
   ToggleButton,
   Checkbox,
   FormControlLabel,
+  Chip,
 } from '@mui/material';
 import {
   AutoAwesome as AIIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { OrganizationFilter, ComparisonMode } from '../../App';
 import WeekPicker from '../dashboard/WeekPicker';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface HeaderProps {
   onAIToggle: () => void;
@@ -43,6 +46,8 @@ export default function Header({
   comparisonMode,
   onComparisonModeChange,
 }: HeaderProps) {
+  const { user, logout } = useAuth();
+
   const handleOrganizationChange = (
     _event: React.MouseEvent<HTMLElement>,
     newFilter: OrganizationFilter | null,
@@ -185,6 +190,37 @@ export default function Header({
             </IconButton>
           </motion.div>
         </Tooltip>
+
+        {/* User info and logout */}
+        {user && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Chip
+              label={user.name}
+              size="small"
+              sx={{
+                bgcolor: alpha('#ED8D48', 0.1),
+                color: '#ED8D48',
+                fontWeight: 500,
+                display: { xs: 'none', sm: 'flex' }
+              }}
+            />
+            <Tooltip title="Выйти">
+              <IconButton
+                onClick={logout}
+                size="small"
+                sx={{
+                  color: alpha('#ED8D48', 0.7),
+                  '&:hover': {
+                    color: '#ED8D48',
+                    bgcolor: alpha('#ED8D48', 0.1),
+                  },
+                }}
+              >
+                <LogoutIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
     </Box>
   );

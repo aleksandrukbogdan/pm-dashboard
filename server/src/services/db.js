@@ -48,6 +48,18 @@ export async function initDatabase() {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_history_project ON project_history(project_key)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_history_week ON project_history(week_start)');
 
+    // Create users table for authentication
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        name TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
+
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Database initialization error:', error);

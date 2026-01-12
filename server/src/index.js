@@ -6,8 +6,11 @@ import { fileURLToPath } from 'url';
 import sheetsRoutes from './routes/sheets.js';
 import dashboardRoutes from './routes/dashboard.js';
 import snapshotsRoutes from './routes/snapshots.js';
+import authRoutes from './routes/auth.js';
+import { authMiddleware } from './middleware/authMiddleware.js';
 import { initScheduler } from './services/scheduler.js';
 import { initDatabase } from './services/db.js';
+import { seedUsers } from './services/seedUsers.js';
 
 dotenv.config();
 
@@ -26,12 +29,15 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(publicPath));
 }
 
-// API Routes
-app.use('/api/sheets', sheetsRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/snapshots', snapshotsRoutes);
+// Auth routes (public)
+app.use('/api/auth', authRoutes);
 
-// Health check
+// Protected API Routes
+app.use('/api/sheets', authMiddleware, sheetsRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/snapshots', authMiddleware, snapshotsRoutes);
+
+// Health check (public)
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -50,6 +56,9 @@ async function start() {
     // Initialize database tables
     await initDatabase();
 
+    // Seed default users
+    await seedUsers();
+
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
 
@@ -63,3 +72,4 @@ async function start() {
 }
 
 start();
+
