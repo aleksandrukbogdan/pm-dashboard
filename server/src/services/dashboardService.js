@@ -36,39 +36,55 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
   }
 
   try {
-    // Start all data fetches in parallel
+    // Start data fetches with controlled concurrency to avoid network timeouts
     const start = Date.now();
     console.log('Starting dashboard data fetch...');
 
-    const teamSheetPromise = getSheetDataAsObjects(spreadsheetId, TEAM_SHEET.name, TEAM_SHEET.headerRowIndex)
-      .catch(err => {
-        console.warn('Could not load Команда sheet, falling back to Роль в проекте:', err.message);
-        return [];
-      });
+    // Function to run tasks with concurrency limit
+    async function fetchWithConcurrency(items, limit, fn) {
+      const results = [];
+      const chunks = [];
+      for (let i = 0; i < items.length; i += limit) {
+        chunks.push(items.slice(i, i + limit));
+      }
 
-    const projectSheetsPromises = SHEET_MAPPINGS.map(mapping =>
-      getSheetDataAsObjects(spreadsheetId, mapping.name, mapping.headerRowIndex)
-        .then(rows => ({ mapping, rows }))
-    );
+      for (const chunk of chunks) {
+        const chunkResults = await Promise.all(chunk.map(item => fn(item)));
+        results.push(...chunkResults);
+      }
+      return results;
+    }
 
-    // Wait for all requests to complete
-    const [teamSheetRows, ...projectSheetResults] = await Promise.all([
-      teamSheetPromise,
-      ...projectSheetsPromises
-    ]);
+    // 1. Fetch Team sheet first (it's critical for mapping roles)
+    // We fetch it separately to ensure we don't bombard the auth endpoint initially
+    let teamSheetRows = [];
+    try {
+      teamSheetRows = await getSheetDataAsObjects(spreadsheetId, TEAM_SHEET.name, TEAM_SHEET.headerRowIndex);
+    } catch (teamError) {
+      console.warn('Could not load Команда sheet, falling back to Роль в проекте:', teamError.message);
+    }
+
+    // 2. Fetch Project sheets with concurrency limit
+    const CONCURRENCY_LIMIT = 3;
+    const projectSheetResults = await fetchWithConcurrency(SHEET_MAPPINGS, CONCURRENCY_LIMIT, async (mapping) => {
+      const rows = await getSheetDataAsObjects(spreadsheetId, mapping.name, mapping.headerRowIndex);
+      return { mapping, rows };
+    });
 
     console.log(`Data fetch completed in ${(Date.now() - start) / 1000}s`);
 
     // Process Team Data
     let teamPositionMap = {};
-    teamSheetRows.forEach(row => {
-      const name = normalizeName(row['фио'] || '');
-      const position = (row['должность'] || '').trim();
-      if (name && position) {
-        teamPositionMap[name] = position;
-      }
-    });
-    console.log(`Loaded ${Object.keys(teamPositionMap).length} team members from Команда sheet`);
+    if (teamSheetRows) {
+      teamSheetRows.forEach(row => {
+        const name = normalizeName(row['фио'] || '');
+        const position = (row['должность'] || '').trim();
+        if (name && position) {
+          teamPositionMap[name] = position;
+        }
+      });
+      console.log(`Loaded ${Object.keys(teamPositionMap).length} team members from Команда sheet`);
+    }
 
     const allProjects = [];
 
