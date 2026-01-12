@@ -37,10 +37,15 @@ export default function Login() {
         setError('');
         setIsSubmitting(true);
 
+        console.log('Login form submitted', { username });
+        console.log('Current origin:', window.location.origin);
+
         try {
             await login(username, password);
+            console.log('Login successful, redirecting');
             navigate(from, { replace: true });
         } catch (err) {
+            console.error('Login error in component:', err);
             setError(err instanceof Error ? err.message : 'Ошибка входа');
         } finally {
             setIsSubmitting(false);

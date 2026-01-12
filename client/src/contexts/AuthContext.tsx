@@ -69,24 +69,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, []);
 
     const login = async (username: string, password: string) => {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-        });
+        const url = '/api/auth/login';
+        console.log('AuthContext: Attempting login to:', url);
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Login failed');
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            console.log('AuthContext: Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('AuthContext: Response error text:', errorText);
+                try {
+                    const error = JSON.parse(errorText);
+                    throw new Error(error.error || 'Login failed');
+                } catch (e) {
+                    throw new Error(`Login failed with status ${response.status}: ${errorText}`);
+                }
+            }
+
+            const data = await response.json();
+            console.log('AuthContext: Login successful, received token');
+            localStorage.setItem('token', data.token);
+            setToken(data.token);
+            setUser(data.user);
+        } catch (error) {
+            console.error('AuthContext: Fetch error:', error);
+            throw error;
         }
-
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        setToken(data.token);
-        setUser(data.user);
     };
+
+
 
     const logout = () => {
         localStorage.removeItem('token');
