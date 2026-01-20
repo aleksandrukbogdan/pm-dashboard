@@ -219,6 +219,7 @@ const DIRECTION_COLORS: Record<string, string> = {
     'Разработка ПО': '#EC4899',    // Pink-500
     'Промышленный дизайн': '#14B8A6', // Teal-500
     'ML': '#F59E0B',               // Amber-500
+    'Поддержка': '#F43F5E',        // Rose-500 (red)
 };
 
 function DirectionAccordion({ direction, projects }: { direction: string, projects: Project[] }) {

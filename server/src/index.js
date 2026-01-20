@@ -62,6 +62,22 @@ async function start() {
     // Seed default users
     await seedUsers();
 
+    // Check if we need to create an initial snapshot
+    const db = (await import('./services/db.js')).default;
+    const { rows } = await db.execute('SELECT COUNT(*) as count FROM project_history');
+    const historyCount = rows[0]?.count || 0;
+
+    if (historyCount === 0) {
+      console.log('No project history found. Creating initial snapshot...');
+      const { createImmediateSnapshot } = await import('./services/scheduler.js');
+      try {
+        await createImmediateSnapshot();
+        console.log('Initial snapshot created successfully');
+      } catch (error) {
+        console.error('Failed to create initial snapshot:', error);
+      }
+    }
+
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
 

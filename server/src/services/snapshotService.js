@@ -77,38 +77,51 @@ export async function createSnapshot(spreadsheetId) {
  * Update project history and detect status changes
  */
 async function updateProjectHistory(projects, weekStart) {
-    // Get previous day's data for comparison
-    const prevDateKey = getPreviousDateKey(weekStart);
-    const previousHistoryMap = new Map();
-
-    const { rows: prevRecords } = await db.execute({
-        sql: 'SELECT project_key, status FROM project_history WHERE week_start = ?',
-        args: [prevDateKey]
+    // Get the LAST available snapshot's data for comparison (not just previous day)
+    const { rows: lastSnapshotRows } = await db.execute({
+        sql: `SELECT week_start FROM project_history 
+              WHERE week_start < ? 
+              ORDER BY week_start DESC LIMIT 1`,
+        args: [weekStart]
     });
 
-    prevRecords.forEach(r => previousHistoryMap.set(r.project_key, r.status));
+    const lastAvailableWeekStart = lastSnapshotRows[0]?.week_start;
+    const previousHistoryMap = new Map();
+
+    if (lastAvailableWeekStart) {
+        const { rows: prevRecords } = await db.execute({
+            sql: 'SELECT project_key, status, status_changed_at FROM project_history WHERE week_start = ?',
+            args: [lastAvailableWeekStart]
+        });
+        prevRecords.forEach(r => previousHistoryMap.set(r.project_key, {
+            status: r.status,
+            statusChangedAt: r.status_changed_at
+        }));
+    }
 
     // Process each project
     for (const project of projects) {
         const projectKey = `${project.name}|${project.direction}`;
         const currentStatus = project.status || '';
-        const previousStatus = previousHistoryMap.get(projectKey) || null;
+        const previousData = previousHistoryMap.get(projectKey);
+        const previousStatus = previousData?.status || null;
 
         // Detect status change
         let statusChangedAt = null;
         if (previousStatus !== null && previousStatus !== currentStatus) {
+            // Status actually changed - set new date
             statusChangedAt = new Date().toISOString();
         } else if (previousStatus === null) {
-            // New project
-            statusChangedAt = new Date().toISOString();
-        } else {
-            // Status unchanged - get previous statusChangedAt
+            // New project - but check if we have any history at all for this project
             const { rows: prevHistoryRows } = await db.execute({
                 sql: 'SELECT status_changed_at FROM project_history WHERE project_key = ? ORDER BY week_start DESC LIMIT 1',
                 args: [projectKey]
             });
             const prevHistory = prevHistoryRows[0];
             statusChangedAt = prevHistory?.status_changed_at || new Date().toISOString();
+        } else {
+            // Status unchanged - preserve previous statusChangedAt
+            statusChangedAt = previousData?.statusChangedAt || new Date().toISOString();
         }
 
         await db.execute({
@@ -236,6 +249,7 @@ export async function getStatusDurations(projectKeys) {
         return {};
     }
 
+
     // Build query with placeholders for all keys
     const placeholders = projectKeys.map(() => '?').join(', ');
 
@@ -252,6 +266,7 @@ export async function getStatusDurations(projectKeys) {
               )`,
         args: projectKeys
     });
+
 
     // Calculate durations for each project
     const durations = {};
@@ -273,6 +288,7 @@ export async function getStatusDurations(projectKeys) {
             durations[row.project_key] = diffDays;
         }
     });
+
 
     return durations;
 }

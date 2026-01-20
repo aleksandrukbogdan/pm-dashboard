@@ -235,11 +235,41 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       return isNaN(val) ? 0 : val;
     };
 
-    const financialBreakdown = { total: 0, inWork: 0, receivable: 0, paid: 0 };
+    // Phases configuration for financial breakdown
+    const ACTIVE_PHASES = ['реализация', 'пилот', 'завершающий этап', 'постпроектная работа', 'готово'];
+    const POTENTIAL_PHASES = ['не начат', 'предпроектная подготовка', 'коммерческий этап'];
+    const EXCLUDED_PHASES = ['отмена', 'пауза', 'на поддержке'];
+
+    const financialBreakdown = {
+      total: 0,
+      inWork: 0,
+      receivable: 0,
+      paid: 0,
+      potential: 0,
+      regularMoney: data?.summary?.financialBreakdown?.regularMoney ?? 0
+    };
     projects.forEach(p => {
       const costStr = p.totalCost || p.financials?.cost;
       const cost = parseCost(costStr);
       const paymentStatus = (p.paymentStatus || '').toLowerCase().trim();
+      const phase = (p.phase || '').toLowerCase().trim();
+
+      // Check if excluded phase
+      if (EXCLUDED_PHASES.some(ph => phase.includes(ph))) {
+        return;
+      }
+
+      // Check if potential phase
+      if (POTENTIAL_PHASES.some(ph => phase.includes(ph))) {
+        financialBreakdown.potential += cost;
+        return;
+      }
+
+      // Only count active phases for main money (or empty phase for backwards compatibility)
+      const isActivePhase = phase === '' || ACTIVE_PHASES.some(ph => phase.includes(ph));
+      if (!isActivePhase) {
+        return;
+      }
 
       financialBreakdown.total += cost;
 

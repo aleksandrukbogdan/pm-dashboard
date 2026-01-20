@@ -9,11 +9,14 @@ const SHEET_MAPPINGS = [
   { name: 'Дизайн (графический)', direction: 'Design', headerRowIndex: 0 },
   { name: 'Проекты разработка ПО', direction: 'Разработка ПО', headerRowIndex: 0 },
   { name: 'Проекты пром дизайн', direction: 'Промышленный дизайн', headerRowIndex: 0 },
-  { name: 'Проекты ML', direction: 'ML', headerRowIndex: 0 },
+  { name: 'Проекты ML', direction: 'ML', headerRowIndex: 1 },
 ];
 
 // Team sheet with ФИО and Должность columns
 const TEAM_SHEET = { name: 'Команда', headerRowIndex: 0 };
+
+// Support projects sheet with monthly payments
+const SUPPORT_SHEET = { name: 'На поддержке', headerRowIndex: 0 };
 
 // Helper function to normalize name:
 // - Replace ё with е (Алёна = Алена)
@@ -50,7 +53,17 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
     } catch (teamError) {
       console.warn('Could not load Команда sheet, falling back to Роль в проекте:', teamError.message);
     }
-    
+
+    // 1.5 Fetch Support sheet for regular money
+    let supportSheetRows = [];
+    try {
+      await delay(500);
+      supportSheetRows = await getSheetDataAsObjects(spreadsheetId, SUPPORT_SHEET.name, SUPPORT_SHEET.headerRowIndex);
+      console.log(`Loaded ${supportSheetRows.length} support projects from На поддержке sheet`);
+    } catch (supportError) {
+      console.warn('Could not load На поддержке sheet:', supportError.message);
+    }
+
     // 2. Fetch Project sheets sequentially with delay
     const projectSheetResults = [];
     for (const mapping of SHEET_MAPPINGS) {
@@ -109,6 +122,7 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
             executor: row['_компания_исполнитель'] || '',
             totalCost: row['итоговая_стоимость'] || row['_итоговая_стоимость'] || '',
             paymentStatus: row['оплата_проекта'] || '',
+            phase: row['фаза_проекта'] || row['_фаза_проекта'] || '',
             goal: row['_цель_проекта'] || '',
             expectedResult: row['_ожидаемый_результат'] || row['ожидаемый_результат'] || row['ожидаемый_продукт,_потребность_которую_закрываем'] || row['_ожидаемый_продукт,_потребность_которую_закрываем'] || '',
             stack: row['стек'] || row['_стек'] || '',
@@ -138,6 +152,34 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
       allProjects.push(...normalizedRows);
     }
 
+    // 3. Process Support sheet projects as direction "Поддержка"
+    supportSheetRows.forEach(row => {
+      const name = row['наименование_проекта'] || row['название_проекта'] || row['проект'] || '';
+      if (!name) return;
+
+      allProjects.push({
+        name: name,
+        direction: 'Поддержка',
+        type: 'Коммерческий',
+        startDate: row['начало_поддержки'] || row['_начало_поддержки'] || '',
+        endDate: row['завершение_по_договору'] || row['_завершение_по_договору'] || '',
+        status: 'На поддержке',
+        phase: 'На поддержке',
+        customer: row['заказчик'] || row['_заказчик'] || '',
+        executor: row['компания_исполнитель'] || row['_компания_исполнитель'] || '',
+        totalCost: row['стоимость_договора'] || row['_стоимость_договора'] || '',
+        paymentStatus: 'Оплачено',
+        monthlyPayment: row['ежемесячная_оплата'] || row['_ежемесячная_оплата'] || '',
+        supportStartDate: row['начало_поддержки'] || row['_начало_поддержки'] || '',
+        supportEndDate: row['завершение_по_договору'] || row['_завершение_по_договору'] || '',
+        team: [],
+        financials: {},
+        teamMemberName: '',
+        teamMemberRole: '',
+        teamMemberEmployment: ''
+      });
+    });
+
     // Group by project name AND direction (to handle same-name projects in different directions)
     const groupedProjects = {};
 
@@ -163,6 +205,7 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
           financials: p.financials,
           totalCost: p.totalCost,
           paymentStatus: p.paymentStatus,
+          phase: p.phase,
           type: p.type,
           executor: p.executor
         };
@@ -203,6 +246,51 @@ export async function getDashboardData(spreadsheetId, forceRefresh = false) {
     });
 
     const financialBreakdown = calculateFinancialBreakdown(projects);
+
+    // Calculate regular money from support projects (monthly payments)
+    // Only count if today is within the contract period (Начало поддержки - Завершение по договору)
+    // If dates are empty, count the payment anyway
+    let regularMoney = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      const parts = dateStr.split('.');
+      if (parts.length === 3) {
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+      }
+      return null;
+    };
+
+    supportSheetRows.forEach(row => {
+      const monthlyPayment = parseCost(row['ежемесячная_оплата'] || row['_ежемесячная_оплата'] || '');
+      if (monthlyPayment <= 0) return;
+
+      const startDateStr = row['начало_поддержки'] || row['_начало_поддержки'] || '';
+      const endDateStr = row['завершение_по_договору'] || row['_завершение_по_договору'] || '';
+
+      const startDate = parseDate(startDateStr);
+      const endDate = parseDate(endDateStr);
+
+      // If both dates are empty, add the payment
+      // If only start date exists, check if today >= start
+      // If only end date exists, check if today <= end
+      // If both exist, check if today is between them
+      let isActive = true;
+
+      if (startDate && today < startDate) {
+        isActive = false;
+      }
+      if (endDate && today > endDate) {
+        isActive = false;
+      }
+
+      if (isActive) {
+        regularMoney += monthlyPayment;
+      }
+    });
+    financialBreakdown.regularMoney = regularMoney;
 
     const summary = {
       totalProjects: projects.length,
@@ -260,23 +348,52 @@ function calculateTotalBudget(projects) {
 }
 
 /**
- * Calculate financial breakdown by payment status
+ * Calculate financial breakdown by payment status AND phase
+ * - Only active phases (Реализация → Готово) count as main money
+ * - Early phases (Не начат, Предпроектная подготовка, Коммерческий этап) count as potential money
+ * - Отмена, Пауза are excluded
  * - inWork: "Счет не выставлен" or empty/dash
  * - receivable: "Счет выставлен"
  * - paid: "Оплачено"
  */
 function calculateFinancialBreakdown(projects) {
+  // Phases that count for main money
+  const ACTIVE_PHASES = ['реализация', 'пилот', 'завершающий этап', 'постпроектная работа', 'готово'];
+  // Phases that count for potential money
+  const POTENTIAL_PHASES = ['не начат', 'предпроектная подготовка', 'коммерческий этап'];
+  // Excluded phases
+  const EXCLUDED_PHASES = ['отмена', 'пауза', 'на поддержке'];
+
   const breakdown = {
     total: 0,
     inWork: 0,
     receivable: 0,
-    paid: 0
+    paid: 0,
+    potential: 0
   };
 
   projects.forEach(p => {
     const costStr = p.totalCost || p.financials?.cost;
     const cost = parseCost(costStr);
     const paymentStatus = (p.paymentStatus || '').toLowerCase().trim();
+    const phase = (p.phase || '').toLowerCase().trim();
+
+    // Check if excluded phase
+    if (EXCLUDED_PHASES.some(ph => phase.includes(ph))) {
+      return;
+    }
+
+    // Check if potential phase
+    if (POTENTIAL_PHASES.some(ph => phase.includes(ph))) {
+      breakdown.potential += cost;
+      return;
+    }
+
+    // Only count active phases for main money (or empty phase for backwards compatibility)
+    const isActivePhase = phase === '' || ACTIVE_PHASES.some(ph => phase.includes(ph));
+    if (!isActivePhase) {
+      return;
+    }
 
     breakdown.total += cost;
 

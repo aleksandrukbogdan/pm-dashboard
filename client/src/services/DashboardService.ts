@@ -34,6 +34,8 @@ export interface DashboardData {
             inWork: number;
             receivable: number;
             paid: number;
+            potential: number;
+            regularMoney: number;
         };
     };
     charts: {
@@ -105,6 +107,8 @@ export interface ComparisonData {
             inWork: number;
             receivable: number;
             paid: number;
+            potential: number;
+            regularMoney: number;
         };
         deadlines: {
             onTrack: number;

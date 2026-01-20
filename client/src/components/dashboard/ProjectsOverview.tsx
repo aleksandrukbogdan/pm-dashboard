@@ -10,6 +10,7 @@ const DIRECTION_COLORS = [
     '#EC4899', // Разработка ПО - Pink-500
     '#14B8A6', // Промышленный дизайн - Teal-500
     '#F59E0B', // ML - Amber-500
+    '#F43F5E', // Поддержка - Rose-500
 ];
 
 // Dimmed versions of colors (with alpha)
@@ -20,6 +21,7 @@ const DIRECTION_COLORS_DIMMED = [
     '#EC489940',
     '#14B8A640',
     '#F59E0B40',
+    '#F43F5E40', // Поддержка - Rose-500 dimmed
 ];
 
 interface ProjectsOverviewProps {
