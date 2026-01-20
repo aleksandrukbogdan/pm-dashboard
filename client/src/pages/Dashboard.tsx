@@ -5,8 +5,8 @@ import { DashboardService, DashboardData, ComparisonData } from '../services/Das
 import ProjectsOverview from '../components/dashboard/ProjectsOverview';
 import Deadlines from '../components/dashboard/Deadlines';
 import Finances from '../components/dashboard/Finances';
-import StatusChart from '../components/dashboard/StatusChart';
-import PhasesChart from '../components/dashboard/PhasesChart';
+
+import ProjectDistributionChart from '../components/dashboard/ProjectDistributionChart';
 import TeamGrid from '../components/dashboard/TeamGrid';
 import ProjectRegistry from '../components/dashboard/ProjectRegistry';
 import { OrganizationFilter, ComparisonMode } from '../App';
@@ -547,28 +547,20 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
         {/* Mid Row: Phases & Team */}
         <Grid item xs={12} md={6}>
-          <PhasesChart
+          <ProjectDistributionChart
+            byStatus={filteredStats.byStatus}
             byPhase={filteredStats.byPhase}
             showCompleted={showCompleted}
             projects={filteredProjects}
+            selectedStatus={selectedStatus}
             selectedPhase={selectedPhase}
+            onStatusClick={handleStatusChange}
             onPhaseClick={handlePhaseChange}
+            statusDurations={statusDurations}
           />
         </Grid>
         <Grid item xs={12} md={6}>
           <TeamGrid teamRoles={filteredStats.teamRoles} teamMembers={filteredStats.teamMembers} />
-        </Grid>
-
-        {/* Bottom Row: Status */}
-        <Grid item xs={12} md={6}>
-          <StatusChart
-            byStatus={filteredStats.byStatus}
-            showCompleted={showCompleted}
-            projects={filteredProjects}
-            selectedStatus={selectedStatus}
-            onStatusClick={handleStatusChange}
-            statusDurations={statusDurations}
-          />
         </Grid>
 
         {/* Project Registry */}
