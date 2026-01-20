@@ -6,6 +6,7 @@ import ProjectsOverview from '../components/dashboard/ProjectsOverview';
 import Deadlines from '../components/dashboard/Deadlines';
 import Finances from '../components/dashboard/Finances';
 import StatusChart from '../components/dashboard/StatusChart';
+import PhasesChart from '../components/dashboard/PhasesChart';
 import TeamGrid from '../components/dashboard/TeamGrid';
 import ProjectRegistry from '../components/dashboard/ProjectRegistry';
 import { OrganizationFilter, ComparisonMode } from '../App';
@@ -25,6 +26,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   const [error, setError] = useState<string | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
   const [selectedDeadlineStatus, setSelectedDeadlineStatus] = useState<string | null>(null);
   const [statusDurations, setStatusDurations] = useState<Record<string, number | null>>({});
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
@@ -33,6 +35,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
   // Use deferred values for heavy filter computations - keeps UI responsive
   const deferredDirection = useDeferredValue(selectedDirection);
   const deferredStatus = useDeferredValue(selectedStatus);
+  const deferredPhase = useDeferredValue(selectedPhase);
   const deferredDeadlineStatus = useDeferredValue(selectedDeadlineStatus);
 
   // Wrapped filter handlers with startTransition for smooth animations
@@ -42,6 +45,10 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
   const handleStatusChange = useCallback((status: string | null) => {
     startTransition(() => setSelectedStatus(status));
+  }, []);
+
+  const handlePhaseChange = useCallback((phase: string | null) => {
+    startTransition(() => setSelectedPhase(phase));
   }, []);
 
   const handleDeadlineStatusChange = useCallback((status: string | null) => {
@@ -127,6 +134,12 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       projects = projects.filter(p => (p.status?.toLowerCase().trim() || '') === lowerSelectedStatus);
     }
 
+    // Filter by phase if selected (case-insensitive, using deferred value)
+    if (deferredPhase) {
+      const lowerSelectedPhase = deferredPhase.toLowerCase().trim();
+      projects = projects.filter(p => (p.phase?.toLowerCase().trim() || '') === lowerSelectedPhase);
+    }
+
     // Filter by deadline status if selected (using deferred value)
     if (deferredDeadlineStatus) {
       projects = projects.filter(p => {
@@ -157,7 +170,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
     }
 
     return projects;
-  }, [data, deferredDirection, deferredStatus, deferredDeadlineStatus, organizationFilter, showCompleted]);
+  }, [data, deferredDirection, deferredStatus, deferredPhase, deferredDeadlineStatus, organizationFilter, showCompleted]);
 
   // Fetch status durations for filtered projects
   useEffect(() => {
@@ -208,6 +221,13 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
           }
         }
       });
+    });
+
+    // Calculate byPhase from filtered projects
+    const byPhase: Record<string, number> = {};
+    projects.forEach(p => {
+      const phase = p.phase?.trim() || 'Unknown';
+      byPhase[phase] = (byPhase[phase] || 0) + 1;
     });
 
     // Calculate deadlines from filtered projects
@@ -319,6 +339,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
 
     return {
       byStatus,
+      byPhase,
       byDirection,
       teamRoles,
       teamMembers,
@@ -409,7 +430,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       {/* Filter indicators with smooth layout animation */}
       <motion.div layout transition={{ duration: 0.2, ease: 'easeOut' }}>
         <AnimatePresence mode="popLayout">
-          {(selectedDirection || selectedStatus || selectedDeadlineStatus) && (
+          {(selectedDirection || selectedStatus || selectedPhase || selectedDeadlineStatus) && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -446,6 +467,22 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
                       <Chip
                         label={`Статус: ${selectedStatus}`}
                         onDelete={() => handleStatusChange(null)}
+                        color="warning"
+                        size="small"
+                      />
+                    </motion.div>
+                  )}
+                  {selectedPhase && (
+                    <motion.div
+                      key="phase"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Chip
+                        label={`Фаза: ${selectedPhase}`}
+                        onDelete={() => handlePhaseChange(null)}
                         color="warning"
                         size="small"
                       />
@@ -508,7 +545,21 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
           </Grid>
         </Grid>
 
-        {/* Bottom Row: Status & Team */}
+        {/* Mid Row: Phases & Team */}
+        <Grid item xs={12} md={6}>
+          <PhasesChart
+            byPhase={filteredStats.byPhase}
+            showCompleted={showCompleted}
+            projects={filteredProjects}
+            selectedPhase={selectedPhase}
+            onPhaseClick={handlePhaseChange}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TeamGrid teamRoles={filteredStats.teamRoles} teamMembers={filteredStats.teamMembers} />
+        </Grid>
+
+        {/* Bottom Row: Status */}
         <Grid item xs={12} md={6}>
           <StatusChart
             byStatus={filteredStats.byStatus}
@@ -518,9 +569,6 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
             onStatusClick={handleStatusChange}
             statusDurations={statusDurations}
           />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <TeamGrid teamRoles={filteredStats.teamRoles} teamMembers={filteredStats.teamMembers} />
         </Grid>
 
         {/* Project Registry */}
