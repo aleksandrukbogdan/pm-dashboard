@@ -162,10 +162,70 @@ export default function ProjectDistributionChart({
     // Determine current items to show
     const isPhaseView = viewMode === 'phase';
 
-    // Filter items based on showCompleted
-    const orderedItems = isPhaseView
-        ? (showCompleted ? allPhases : allPhases.filter(s => !completedPhases.includes(s)))
-        : (showCompleted ? allStatuses : allStatuses.filter(s => !completedStatuses.includes(s)));
+    // Get the data source based on current view mode
+    const currentDataSource = isPhaseView ? byPhase : byStatus;
+
+    // Get all items that have data (either from predefined list or from actual data)
+    // This ensures dynamic categories from data are included
+    const getItemsWithData = (): string[] => {
+        const predefinedItems = isPhaseView
+            ? (showCompleted ? allPhases : allPhases.filter(s => !completedPhases.includes(s)))
+            : (showCompleted ? allStatuses : allStatuses.filter(s => !completedStatuses.includes(s)));
+
+        // Get all keys from data source that have value > 0, excluding 'Unknown'
+        const dataKeys = Object.entries(currentDataSource)
+            .filter(([key, value]) => value > 0 && key.toLowerCase().trim() !== 'unknown')
+            .map(([key, _]) => key);
+
+        // Create a set of all items (predefined + data keys) that have data
+        const allItemsSet = new Set<string>();
+
+        // Add predefined items that have data
+        predefinedItems.forEach(item => {
+            const lowerItem = item.toLowerCase().trim();
+            const hasData = Object.entries(currentDataSource).some(
+                ([key, value]) => key.toLowerCase().trim() === lowerItem && value > 0
+            );
+            if (hasData) {
+                allItemsSet.add(item);
+            }
+        });
+
+        // Add data keys that are not in predefined list (to handle dynamic categories)
+        dataKeys.forEach(key => {
+            const lowerKey = key.toLowerCase().trim();
+            const isInPredefined = predefinedItems.some(
+                item => item.toLowerCase().trim() === lowerKey
+            );
+            if (!isInPredefined) {
+                // Skip completed statuses if not showing completed
+                if (!showCompleted) {
+                    const completedList = isPhaseView ? completedPhases : completedStatuses;
+                    const isCompleted = completedList.some(
+                        c => c.toLowerCase().trim() === lowerKey
+                    );
+                    if (isCompleted) return;
+                }
+                allItemsSet.add(key);
+            }
+        });
+
+        // Convert to array, preserving order: predefined first, then dynamic
+        const result: string[] = [];
+        predefinedItems.forEach(item => {
+            if (allItemsSet.has(item)) {
+                result.push(item);
+                allItemsSet.delete(item);
+            }
+        });
+        // Add remaining dynamic items
+        allItemsSet.forEach(item => result.push(item));
+
+        return result;
+    };
+
+    // Only show items that have actual data (projects with count > 0)
+    const orderedItems = getItemsWithData();
 
     // Helper: Sum values case-insensitive
     const sumValues = (source: Record<string, number>, keyName: string): number => {
@@ -240,7 +300,7 @@ export default function ProjectDistributionChart({
                     )}
 
                     <Typography variant="h6" color="primary.main" fontWeight="bold">
-                        {isPhaseView ? 'Проекты по фазам' : (selectedPhase ? `Проекты по статусам (${selectedPhase})` : 'Проекты по статусам')}
+                        {isPhaseView ? 'Проекты по фазам' : (selectedPhase ? `Проекты по этапам (${selectedPhase})` : 'Проекты по этапам')}
                     </Typography>
                 </Box>
 
