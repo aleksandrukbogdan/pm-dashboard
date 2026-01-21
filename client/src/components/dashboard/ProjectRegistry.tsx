@@ -229,7 +229,7 @@ function DirectionAccordion({ direction, projects }: { direction: string, projec
 
     const columnHeaders = [
         { label: 'Проект', minWidth: 180 },
-        { label: 'Статус', minWidth: 140 },
+        { label: 'этап', minWidth: 140 },
         { label: 'Даты', minWidth: 100 },
         { label: 'Тип', minWidth: 100 },
         { label: 'Заказчик', minWidth: 120 },
@@ -477,7 +477,7 @@ export default function ProjectRegistry({ projects, showFlatList = false }: Proj
                                 <TableRow>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 180 }}>Проект</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Направление</TableCell>
-                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 140 }}>Статус</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 140 }}>этап</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Даты</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Тип</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 120 }}>Заказчик</TableCell>

@@ -465,7 +465,7 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
                       transition={{ duration: 0.15 }}
                     >
                       <Chip
-                        label={`Статус: ${selectedStatus}`}
+                        label={`этап: ${selectedStatus}`}
                         onDelete={() => handleStatusChange(null)}
                         color="warning"
                         size="small"

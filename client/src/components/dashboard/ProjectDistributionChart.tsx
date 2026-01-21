@@ -326,7 +326,7 @@ export default function ProjectDistributionChart({
                         size="small"
                     >
                         <ToggleButton value="phase">Фазы</ToggleButton>
-                        <ToggleButton value="status">Статусы</ToggleButton>
+                        <ToggleButton value="status">этапы</ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
             </Box>
