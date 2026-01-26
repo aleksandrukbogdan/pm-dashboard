@@ -26,17 +26,100 @@ import {
 
 // Status colors for project stages
 const STATUS_COLORS: Record<string, string> = {
+    // Начальные этапы
     'Не начат': '#9e9e9e',
-    'пауза': '#e6c258',
-    'Пауза': '#e6c258',
-    'Исследование': '#A78BFA',
+    'Формирование запроса': '#B0BEC5',
+    'Сбор исходных данных': '#90A4AE',
+    'Установочная встреча': '#78909C',
+    // Предпроектные этапы
+    'Подготовка требований': '#CE93D8',
+    'Формирование ТЗ': '#BA68C8',
+    'Актуализация ТЗ': '#AB47BC',
+    // Коммерческие этапы
+    'Получение ОС и формирование КП': '#FFB74D',
+    'Обсуждение КП': '#FFA726',
+    'Подписание договора': '#FF9800',
+    // Реализация
+    'Инициация реализации': '#64B5F6',
+    'Проектирование': '#42A5F5',
+    'Прототипирование и дизайн': '#2196F3',
+    'Разработка программного кода': '#1E88E5',
+    'Тестирование': '#1976D2',
+    'Развертывание': '#1565C0',
+    'Демо': '#0D47A1',
+    // Завершающие этапы
     'Пилот': '#FF94DB',
-    'В разработке менее 50%': '#DCD4FF',
-    'В разработке более 50%': '#9982FF',
-    'Завершающий этап разработки': '#00A8F0',
-    'Готов': '#05CD99',
+    'Публикация': '#F48FB1',
+    'Приемка': '#4DB6AC',
+    'План доработок': '#26A69A',
+    'Закрытие проекта': '#00897B',
+    // Финальные статусы
+    'Готово': '#05CD99',
     'На поддержке': '#6FD439',
+    'Пауза': '#e6c258',
+    'пауза': '#e6c258'
 };
+
+// Phase colors
+const PHASE_COLORS: Record<string, string> = {
+    'Не начат': '#d4d4d4',           // Gray
+    'Предпроектная подготовка': '#A78BFA', // Light purple
+    'Коммерческий этап': '#FFB74D',   // Orange
+    'Реализация': '#9982FF',         // Purple
+    'Пилот': '#FF94DB',              // Pink
+    'Завершающий этап': '#00A8F0',   // Blue/Indigo
+    'Постпроектная работа': '#4FC3F7', // Light Blue
+    'Готово': '#05CD99',             // Green
+    'На поддержке': '#6FD439',       // Teal
+    'Пауза': '#e6c258',              // Yellow
+    'Отмена': '#ff5252'              // Red
+};
+
+function getPhaseColor(phase: string): string {
+    if (!phase) return '#9e9e9e';
+    if (PHASE_COLORS[phase]) return PHASE_COLORS[phase];
+
+    // Case-insensitive match
+    const phaseLower = phase.toLowerCase().trim();
+    for (const [key, color] of Object.entries(PHASE_COLORS)) {
+        if (key.toLowerCase().trim() === phaseLower) return color;
+    }
+
+    // Fallback: Check STATUS_COLORS if not found in phases (since phases often match status names)
+    for (const [key, color] of Object.entries(STATUS_COLORS)) {
+        if (key.toLowerCase().trim() === phaseLower) return color;
+    }
+
+    return '#9e9e9e';
+}
+
+function PhaseChip({ phase }: { phase: string }) {
+    if (!phase || phase === '-') return <span>-</span>;
+
+    // Check if it's one of the known phases or try to find a color
+    const color = getPhaseColor(phase);
+
+    return (
+        <Chip
+            label={phase}
+            size="small"
+            sx={{
+                bgcolor: alpha(color, 0.12),
+                color: color,
+                border: `1px solid ${alpha(color, 0.3)}`,
+                fontWeight: 500,
+                fontSize: '0.7rem',
+                height: 22,
+                borderRadius: 2,
+                '& .MuiChip-label': {
+                    px: 1,
+                },
+            }}
+        />
+    );
+}
+
+
 
 // Get status color with fallback
 function getStatusColor(status: string): string {
@@ -52,20 +135,11 @@ function getStatusColor(status: string): string {
     }
 
     // Partial match for common patterns
-    if (statusLower.includes('менее 50') || statusLower.includes('<50') || statusLower.includes('< 50')) {
-        return STATUS_COLORS['В разработке менее 50%'];
-    }
-    if (statusLower.includes('более 50') || statusLower.includes('>50') || statusLower.includes('> 50')) {
-        return STATUS_COLORS['В разработке более 50%'];
-    }
-    if (statusLower.includes('завершающий')) {
-        return STATUS_COLORS['Завершающий этап разработки'];
-    }
     if (statusLower.includes('пауза')) {
         return STATUS_COLORS['Пауза'];
     }
-    if (statusLower.includes('готов') || statusLower.includes('завершен')) {
-        return STATUS_COLORS['Готов'];
+    if (statusLower.includes('готов') || statusLower.includes('закрыт')) {
+        return STATUS_COLORS['Готово'];
     }
     if (statusLower.includes('поддержк')) {
         return STATUS_COLORS['На поддержке'];
@@ -73,8 +147,14 @@ function getStatusColor(status: string): string {
     if (statusLower.includes('пилот')) {
         return STATUS_COLORS['Пилот'];
     }
-    if (statusLower.includes('исследование')) {
-        return STATUS_COLORS['Исследование'];
+    if (statusLower.includes('тест')) {
+        return STATUS_COLORS['Тестирование'];
+    }
+    if (statusLower.includes('разработ')) {
+        return STATUS_COLORS['Разработка программного кода'];
+    }
+    if (statusLower.includes('проект')) {
+        return STATUS_COLORS['Проектирование'];
     }
 
     return '#9e9e9e'; // Default gray
@@ -116,6 +196,7 @@ interface Project {
     name: string;
     direction: string;
     status: string;
+    phase?: string;
     startDate: string;
     endDate: string;
     type: string;
@@ -229,7 +310,8 @@ function DirectionAccordion({ direction, projects }: { direction: string, projec
 
     const columnHeaders = [
         { label: 'Проект', minWidth: 180 },
-        { label: 'этап', minWidth: 140 },
+        { label: 'Фаза', minWidth: 140 }, // New column
+        { label: 'Этап', minWidth: 140 },
         { label: 'Даты', minWidth: 100 },
         { label: 'Тип', minWidth: 100 },
         { label: 'Заказчик', minWidth: 120 },
@@ -352,6 +434,9 @@ function DirectionAccordion({ direction, projects }: { direction: string, projec
                                                 {project.name || '-'}
                                             </Typography>
                                         </Tooltip>
+                                    </TableCell>
+                                    <TableCell>
+                                        <PhaseChip phase={project.phase || ''} />
                                     </TableCell>
                                     <TableCell><StatusChip status={project.status} /></TableCell>
                                     <TableCell>
@@ -477,7 +562,8 @@ export default function ProjectRegistry({ projects, showFlatList = false }: Proj
                                 <TableRow>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 180 }}>Проект</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Направление</TableCell>
-                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 140 }}>этап</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 140 }}>Фаза</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 140 }}>Этап</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Даты</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 100 }}>Тип</TableCell>
                                     <TableCell sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'text.secondary', bgcolor: '#FAFAFF', minWidth: 120 }}>Заказчик</TableCell>
@@ -520,6 +606,10 @@ export default function ProjectRegistry({ projects, showFlatList = false }: Proj
                                                     }}
                                                 />
                                             </TableCell>
+                                            <TableCell>
+                                                <PhaseChip phase={project.phase || ''} />
+                                            </TableCell>
+
                                             <TableCell><StatusChip status={project.status} /></TableCell>
                                             <TableCell>
                                                 <Typography variant="caption" color="text.secondary">

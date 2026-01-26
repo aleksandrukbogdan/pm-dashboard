@@ -86,7 +86,7 @@ export default function Deadlines({ stats, selectedDeadlineStatus, onDeadlineCli
                 <List dense sx={{ flex: 1, ml: 2 }}>
                     <ListItem disablePadding>
                         <ListItemText
-                            primary={<Typography variant="caption" color="text.secondary">этап</Typography>}
+                            primary={<Typography variant="caption" color="text.secondary">Этап</Typography>}
                         />
                         <Typography variant="caption" color="text.secondary">Кол-во проектов</Typography>
                     </ListItem>
