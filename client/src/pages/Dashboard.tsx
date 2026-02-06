@@ -161,11 +161,12 @@ export default function Dashboard({ spreadsheetId, organizationFilter, showCompl
       });
     }
 
-    // Filter completed projects
+    // Filter completed projects by PHASE (not status)
+    // Completed phases are: Готово, На поддержке, Отмена, Пауза
     if (!showCompleted) {
       projects = projects.filter(p => {
-        const status = p.status?.toLowerCase() || '';
-        return !status.includes('завершен') && !status.includes('на поддержке') && !status.includes('готов');
+        const phase = p.phase?.toLowerCase() || '';
+        return !phase.includes('готово') && !phase.includes('на поддержке') && !phase.includes('отмена') && !phase.includes('пауза');
       });
     }
 
